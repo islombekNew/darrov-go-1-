@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  RESTAURANT_OWNER
+  COURIER
+  ADMIN
+  SUPERADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  PENDING
+  BLOCKED
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  PREPARING
+  READY
+  ON_THE_WAY
+  DELIVERED
+  CANCELLED
+}
+
+model User {
+  id            String     @id @default(cuid())
+  phone         String     @unique
+  name          String?
+  role          Role       @default(CUSTOMER)
+  status        UserStatus @default(ACTIVE)
+  regionId      String?
+  regionName    String?
+  address       String?
+  floor         String?
+  apartment     String?
+  avatar        String?
+  coins         Int        @default(3)
+  streak        Int        @default(0)
+  lastOrderDate DateTime?
+  referralCode  String     @unique @default(cuid())
+  referredBy    String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  orders        Order[]    @relation("CustomerOrders")
+  restaurant    Restaurant?
+  courier       Courier?
+}
+
+model OTP {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+}
+
+model Region {
+  id   String @id @default(cuid())
+  name String @unique
+  restaurants Restaurant[]
+}
+
+model Restaurant {
+  id           String  @id @default(cuid())
+  ownerId      String  @unique
+  name         String
+  description  String?
+  category     String  @default("Milliy")
+  regionId     String
+  address      String
+  logo         String?
+  isOpen       Boolean @default(true)
+  rating       Float   @default(5.0)
+  ratingCount  Int     @default(0)
+  deliveryTime String  @default("30-45 daq")
+  minOrder     Int     @default(20000)
+  commission   Float   @default(0.1)
+  createdAt    DateTime @default(now())
+
+  owner        User        @relation(fields: [ownerId], references: [id])
+  region       Region      @relation(fields: [regionId], references: [id])
+  menuItems    MenuItem[]
+  orders       Order[]
+}
+
+model MenuItem {
+  id           String     @id @default(cuid())
+  restaurantId String
+  name         String
+  description  String?
+  price        Int
+  category     String     @default("Asosiy")
+  emoji        String     @default("🍽")
+  available    Boolean    @default(true)
+  orderCount   Int        @default(0)
+  createdAt    DateTime   @default(now())
+
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+}
+
+model Courier {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  vehicle    String   @default("Mototsikl")
+  online     Boolean  @default(false)
+  rating     Float    @default(5.0)
+  ratingCount Int     @default(0)
+  totalDeliveries Int @default(0)
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id])
+  deliveries Order[]
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  orderNumber  Int         @default(autoincrement())
+  customerId   String
+  restaurantId String
+  courierId    String?
+  status       OrderStatus @default(PENDING)
+  items        Json
+  subtotal     Int
+  deliveryFee  Int
+  total        Int
+  coinsEarned  Int         @default(0)
+  address      String
+  floor        String?
+  apartment    String?
+  comment      String?
+  distance     Float?
+  courierEarning Int?
+  platformShare  Int?
+  restaurantShare Int?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  customer     User        @relation("CustomerOrders", fields: [customerId], references: [id])
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
+  courier      Courier?    @relation(fields: [courierId], references: [id])
+}

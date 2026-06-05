@@ -11,6 +11,20 @@ import {
   IcChevron, IcMoon, IcSun,
 } from '../../components/Icons';
 
+// ─── Km ga asoslangan narx hisoblash ───
+// 0-1 km: 6 000 so'm | +1 km qo'shilsa +3 000 so'm
+const calcDeliveryFee = (km: number): number => {
+  if (km <= 0) return 6000;
+  const base = 6000;
+  const extra = Math.max(0, Math.ceil(km) - 1) * 3000;
+  return base + extra;
+};
+
+// Kuryer daromadi (restoran narxidan 70%)
+const calcCourierEarning = (km: number): number => {
+  return Math.round(calcDeliveryFee(km) * 0.7);
+};
+
 // ════════ BOSH SAHIFA ════════
 export function CourierHomeScreen({ navigation }: any) {
   const { T, isDark } = useThemeStore();
@@ -53,7 +67,12 @@ export function CourierHomeScreen({ navigation }: any) {
         </View>
 
         {/* Yangi buyurtma */}
-        {online && hasOrder ? (
+        {online && hasOrder ? (() => {
+          const orderKm = 1.8;
+          const fee = calcDeliveryFee(orderKm);
+          const earning = calcCourierEarning(orderKm);
+          const eta = Math.round(orderKm * 5 + 3);
+          return (
           <View style={[k.orderCard, { backgroundColor: T.card, borderColor: C.p }]}>
             <View style={[k.orderTop, { backgroundColor: isDark ? '#2a1400' : C.plt }]}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: S.sm }}>
@@ -74,9 +93,20 @@ export function CourierHomeScreen({ navigation }: any) {
                   <Text style={[k.routeTxt, { color: T.t2 }]}>Yunusobod, Amir Temur 45</Text>
                 </View>
               </View>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: S.md }}>
-                <Text style={[k.earn, { color: C.gn }]}>+ {fmtPrice(9000)}</Text>
-                <Text style={[k.dist, { color: T.t3 }]}>1.8 km · ~8 daq</Text>
+              {/* Narx breakdown */}
+              <View style={[{ borderRadius: R.md, padding: S.sm, marginTop: S.sm, backgroundColor: isDark ? '#1a1a00' : '#fffbe6' }]}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ fontSize: F.xs, color: T.t3, fontWeight: '600' }}>Yetkazish narxi</Text>
+                  <Text style={{ fontSize: F.xs, color: T.t2, fontWeight: '700' }}>{fmtPrice(fee)}</Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 3 }}>
+                  <Text style={{ fontSize: F.xs, color: C.gn, fontWeight: '600' }}>Sizning ulushingiz</Text>
+                  <Text style={{ fontSize: F.xs, color: C.gn, fontWeight: '800' }}>+{fmtPrice(earning)}</Text>
+                </View>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: S.sm }}>
+                <Text style={[k.earn, { color: C.gn }]}>+{fmtPrice(earning)}</Text>
+                <Text style={[k.dist, { color: T.t3 }]}>{orderKm} km · ~{eta} daq</Text>
               </View>
             </View>
             <View style={[k.btns, { borderTopColor: T.bd }]}>
@@ -93,7 +123,8 @@ export function CourierHomeScreen({ navigation }: any) {
               </TouchableOpacity>
             </View>
           </View>
-        ) : (
+          );
+        })() : (
           <View style={{ alignItems: 'center', paddingVertical: rs(40, 56) }}>
             <View style={[k.emptyIcon, { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' }]}>
               <IcMotorbike color={online ? C.p : T.t4} size={rs(36, 44)} />

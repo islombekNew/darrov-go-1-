@@ -98,13 +98,17 @@ export function AddressScreen({ navigation }: any) {
   const { T, isDark } = useThemeStore();
   const { user, updateUser } = useAuthStore();
   const [address, setAddress] = useState(user?.address || '');
+  const [floor, setFloor] = useState('');
+  const [apartment, setApartment] = useState('');
+  const [entrance, setEntrance] = useState('');
+  const [comment, setComment] = useState('');
   const [saving, setSaving] = useState(false);
   const [gpsLoading, setGpsLoading] = useState(false);
 
   const SAVED = [
-    { id:1, icon:'🏠', label:'Uy', addr:"Chilonzor, Navruz ko'chasi 12, kv 45" },
-    { id:2, icon:'💼', label:'Ish', addr:'Yunusobod, Amir Temur 67, 3-qavat' },
-    { id:3, icon:'❤️', label:'Onam', addr:"Mirzo Ulug'bek, Bog'ishamol 24" },
+    { id: 1, label: 'Uy',  addr: "Chilonzor, Navruz ko'chasi 12", floor: '3', apt: '45' },
+    { id: 2, label: 'Ish', addr: 'Yunusobod, Amir Temur 67',       floor: '3', apt: '' },
+    { id: 3, label: 'Onam', addr: "Mirzo Ulug'bek, Bog'ishamol 24", floor: '2', apt: '8' },
   ];
 
   const useGps = async () => {
@@ -113,7 +117,6 @@ export function AddressScreen({ navigation }: any) {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Ruxsat rad etildi', 'Joylashuvga ruxsat bering: Sozlamalar > Ilova > Joylashuv');
-        setGpsLoading(false);
         return;
       }
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
@@ -121,7 +124,6 @@ export function AddressScreen({ navigation }: any) {
       const parts = [geo.district, geo.street, geo.streetNumber].filter(Boolean);
       const formatted = geo.city ? `${geo.city}${parts.length ? ', ' + parts.join(', ') : ''}` : `${loc.coords.latitude.toFixed(5)}, ${loc.coords.longitude.toFixed(5)}`;
       setAddress(formatted);
-      Alert.alert('Aniqlandi!', formatted);
     } catch {
       Alert.alert('Xato', "GPS aniqlanmadi. Qo'lda kiriting.");
     } finally {
@@ -129,84 +131,120 @@ export function AddressScreen({ navigation }: any) {
     }
   };
 
+  const fullAddress = [address, floor ? `${floor}-qavat` : '', apartment ? `kv. ${apartment}` : '', entrance ? `${entrance}-kirish` : '', comment].filter(Boolean).join(', ');
+
   const onSave = async () => {
-    if (!address.trim()) { Alert.alert('Xato', 'Manzilni kiriting'); return; }
+    if (!address.trim()) { Alert.alert('Xato', 'Ko\'cha/mahalla kiriting'); return; }
     setSaving(true);
-    await new Promise(r => setTimeout(r, 600));
-    updateUser({ address: address.trim() });
+    await new Promise(r => setTimeout(r, 500));
+    updateUser({ address: fullAddress });
     setSaving(false);
-    Alert.alert('✅', 'Manzil saqlandi!', [{ text:'OK', onPress:() => navigation.goBack() }]);
+    Alert.alert('Saqlandi!', 'Manzil saqlandi', [{ text: 'OK', onPress: () => navigation.goBack() }]);
   };
 
   return (
-    <SafeAreaView style={{ flex:1, backgroundColor:T.bg }} edges={['top']}>
-      <Header navigation={navigation} title="Manzil o'zgartirish" T={T} />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding:S.lg, paddingBottom:S.xxl }}>
-        {/* GPS tugma */}
+    <SafeAreaView style={{ flex: 1, backgroundColor: T.bg }} edges={['top']}>
+      <Header navigation={navigation} title="Manzil" T={T} />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: S.lg, paddingBottom: S.xxl }}>
+        {/* GPS */}
         <TouchableOpacity
           style={[as.gpsBtn, { backgroundColor: gpsLoading ? C.p2 : C.p }]}
-          onPress={useGps}
-          disabled={gpsLoading}
-          activeOpacity={0.88}
+          onPress={useGps} disabled={gpsLoading} activeOpacity={0.88}
         >
-          {gpsLoading
-            ? <ActivityIndicator color="#fff" size="small" />
-            : <Text style={{ fontSize: rs(20, 24) }}>📍</Text>}
+          {gpsLoading ? <ActivityIndicator color="#fff" size="small" /> : <Text style={{ fontSize: rs(18, 22) }}>📍</Text>}
           <Text style={as.gpsTxt}>{gpsLoading ? 'Aniqlanmoqda...' : 'Joriy joylashuvni aniqlash'}</Text>
         </TouchableOpacity>
 
-        {/* Qo'lda kiritish */}
-        <Text style={[as.lbl, { color:T.t1 }]}>Yoki qo'lda kiriting</Text>
-        <View style={[as.inputWrap, { backgroundColor:T.bg2, borderColor:T.bd }]}>
-          <Text style={{ fontSize:rs(18,22) }}>📍</Text>
+        {/* Ko'cha/mahalla */}
+        <Text style={[as.lbl, { color: T.t1 }]}>Ko'cha, mahalla yoki bino</Text>
+        <View style={[as.inputWrap, { backgroundColor: T.bg2, borderColor: address ? C.p : T.bd }]}>
           <TextInput
-            style={[as.input, { color:T.t1 }]}
+            style={[as.input, { color: T.t1 }]}
             value={address} onChangeText={setAddress}
-            placeholder="Mas: Chilonzor, Navruz 12, kv 5" placeholderTextColor={T.t4}
-            multiline
+            placeholder="Mas: Chilonzor, Navruz ko'chasi 12" placeholderTextColor={T.t4}
           />
         </View>
 
+        {/* Qavat, Xonadon, Kirish */}
+        <View style={{ flexDirection: 'row', gap: S.sm }}>
+          <View style={{ flex: 1 }}>
+            <Text style={[as.lbl, { color: T.t1 }]}>Qavat</Text>
+            <TextInput style={[as.smallInp, { color: T.t1, backgroundColor: T.bg2, borderColor: T.bd }]}
+              value={floor} onChangeText={setFloor} placeholder="3" placeholderTextColor={T.t4} keyboardType="numeric" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[as.lbl, { color: T.t1 }]}>Xonadon</Text>
+            <TextInput style={[as.smallInp, { color: T.t1, backgroundColor: T.bg2, borderColor: T.bd }]}
+              value={apartment} onChangeText={setApartment} placeholder="45" placeholderTextColor={T.t4} keyboardType="numeric" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[as.lbl, { color: T.t1 }]}>Kirish</Text>
+            <TextInput style={[as.smallInp, { color: T.t1, backgroundColor: T.bg2, borderColor: T.bd }]}
+              value={entrance} onChangeText={setEntrance} placeholder="2" placeholderTextColor={T.t4} keyboardType="numeric" />
+          </View>
+        </View>
+
+        {/* Izoh */}
+        <Text style={[as.lbl, { color: T.t1, marginTop: S.sm }]}>Kuryerga izoh (ixtiyoriy)</Text>
+        <View style={[as.inputWrap, { backgroundColor: T.bg2, borderColor: T.bd }]}>
+          <TextInput
+            style={[as.input, { color: T.t1 }]}
+            value={comment} onChangeText={setComment}
+            placeholder="Mas: Qora eshik, 2-qavat..." placeholderTextColor={T.t4}
+          />
+        </View>
+
+        {/* To'liq manzil preview */}
+        {fullAddress ? (
+          <View style={[as.preview, { backgroundColor: isDark ? '#1a1200' : C.ambBg, borderColor: C.amber }]}>
+            <Text style={[{ fontSize: F.xs, fontWeight: '700', color: C.amber, marginBottom: 4 }]}>Kuryer ko'radigan manzil:</Text>
+            <Text style={[{ fontSize: F.sm, fontWeight: '600', color: T.t1 }]}>{fullAddress}</Text>
+          </View>
+        ) : null}
+
         {/* Saqlangan manzillar */}
-        <Text style={[as.lbl, { color:T.t1 }]}>Saqlangan manzillar</Text>
-        {SAVED.map(a => (
-          <TouchableOpacity key={a.id}
-            style={[as.addrCard, { backgroundColor:T.card, borderColor:address===a.addr?C.p:T.bd }]}
-            onPress={() => setAddress(a.addr)} activeOpacity={0.85}
+        <Text style={[as.lbl, { color: T.t1, marginTop: S.sm }]}>Saqlangan manzillar</Text>
+        {SAVED.map(sv => (
+          <TouchableOpacity key={sv.id}
+            style={[as.addrCard, { backgroundColor: T.card, borderColor: address === sv.addr ? C.p : T.bd }]}
+            onPress={() => { setAddress(sv.addr); setFloor(sv.floor); setApartment(sv.apt); }}
+            activeOpacity={0.85}
           >
-            <View style={[as.addrIcon, { backgroundColor:isDark?'#2a1400':C.plt }]}>
-              <Text style={{ fontSize:rs(20,24) }}>{a.icon}</Text>
+            <View style={[as.addrIcon, { backgroundColor: isDark ? '#2a1400' : C.plt }]}>
+              <Text style={{ fontSize: rs(18, 22) }}>🏠</Text>
             </View>
-            <View style={{ flex:1 }}>
-              <Text style={[as.addrLbl, { color:T.t1 }]}>{a.label}</Text>
-              <Text style={[as.addrTxt, { color:T.t3 }]}>{a.addr}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[as.addrLbl, { color: T.t1 }]}>{sv.label}</Text>
+              <Text style={[as.addrTxt, { color: T.t3 }]}>{sv.addr}{sv.floor ? `, ${sv.floor}-qavat` : ''}{sv.apt ? `, kv. ${sv.apt}` : ''}</Text>
             </View>
-            {address===a.addr && <Text style={{ fontSize:rs(18,22), color:C.gn }}>✓</Text>}
+            {address === sv.addr && <Text style={{ fontSize: rs(18, 22), color: C.gn }}>✓</Text>}
           </TouchableOpacity>
         ))}
 
         <TouchableOpacity
-          style={[as.saveBtn, { backgroundColor:address.trim()?C.p:T.bg3 }]}
-          onPress={onSave} disabled={!address.trim()||saving} activeOpacity={0.87}
+          style={[as.saveBtn, { backgroundColor: address.trim() ? C.p : T.bg3 }]}
+          onPress={onSave} disabled={!address.trim() || saving} activeOpacity={0.87}
         >
-          <Text style={[as.saveTxt, { color:address.trim()?'#fff':T.t4 }]}>{saving?'Saqlanmoqda...':'✅ Manzilni saqlash'}</Text>
+          <Text style={[as.saveTxt, { color: address.trim() ? '#fff' : T.t4 }]}>{saving ? 'Saqlanmoqda...' : 'Manzilni saqlash'}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
 const as = StyleSheet.create({
-  gpsBtn: { flexDirection:'row', alignItems:'center', justifyContent:'center', gap:S.sm, borderRadius:R.lg, paddingVertical:rs(15,19), marginBottom:S.lg },
-  gpsTxt: { color:'#fff', fontSize:F.md, fontWeight:'800' },
-  lbl: { fontSize:F.sm, fontWeight:'800', marginBottom:S.sm },
-  inputWrap: { flexDirection:'row', alignItems:'flex-start', gap:S.md, borderWidth:1.5, borderRadius:R.md, padding:S.md, marginBottom:S.lg, minHeight:rs(56,68) },
-  input: { flex:1, fontSize:F.md, fontWeight:'600', padding:0, lineHeight:rs(21,25) },
-  addrCard: { flexDirection:'row', alignItems:'center', gap:S.md, borderWidth:1.5, borderRadius:R.lg, padding:S.md, marginBottom:S.sm },
-  addrIcon: { width:rs(44,54), height:rs(44,54), borderRadius:rs(14,18), alignItems:'center', justifyContent:'center' },
-  addrLbl: { fontSize:F.md, fontWeight:'700' },
-  addrTxt: { fontSize:F.sm, fontWeight:'600', marginTop:2 },
-  saveBtn: { borderRadius:R.lg, paddingVertical:rs(16,20), alignItems:'center', marginTop:S.lg },
-  saveTxt: { fontSize:F.lg, fontWeight:'900' },
+  gpsBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: S.sm, borderRadius: R.lg, paddingVertical: rs(15, 19), marginBottom: S.lg },
+  gpsTxt: { color: '#fff', fontSize: F.md, fontWeight: '800' },
+  lbl: { fontSize: F.sm, fontWeight: '800', marginBottom: S.sm },
+  inputWrap: { borderWidth: 1.5, borderRadius: R.md, padding: S.md, marginBottom: S.sm, minHeight: rs(50, 62) },
+  input: { flex: 1, fontSize: F.md, fontWeight: '600', padding: 0, lineHeight: rs(21, 25), color: '#000' },
+  smallInp: { borderWidth: 1.5, borderRadius: R.md, padding: S.md, fontSize: F.md, fontWeight: '600', textAlign: 'center' },
+  preview: { borderWidth: 1.5, borderRadius: R.md, padding: S.md, marginBottom: S.md, marginTop: S.xs },
+  addrCard: { flexDirection: 'row', alignItems: 'center', gap: S.md, borderWidth: 1.5, borderRadius: R.lg, padding: S.md, marginBottom: S.sm },
+  addrIcon: { width: rs(44, 54), height: rs(44, 54), borderRadius: rs(14, 18), alignItems: 'center', justifyContent: 'center' },
+  addrLbl: { fontSize: F.md, fontWeight: '700' },
+  addrTxt: { fontSize: F.sm, fontWeight: '600', marginTop: 2 },
+  saveBtn: { borderRadius: R.lg, paddingVertical: rs(16, 20), alignItems: 'center', marginTop: S.lg },
+  saveTxt: { fontSize: F.lg, fontWeight: '900' },
 });
 
 // ════════ TO'LOV KARTALARI ════════
@@ -423,10 +461,83 @@ export function CustomerOrdersScreen({ navigation }: any) {
   );
 }
 const od = StyleSheet.create({
-  card: { borderWidth:1, borderRadius:R.lg, padding:S.md, marginBottom:S.md },
-  rest: { fontSize:F.lg, fontWeight:'800' },
-  num: { fontSize:F.xs, fontWeight:'700' },
-  items: { fontSize:F.sm, fontWeight:'500' },
-  total: { fontSize:F.md, fontWeight:'900' },
-  status: { fontSize:F.sm, fontWeight:'700' },
+  card: { borderWidth: 1, borderRadius: R.lg, padding: S.md, marginBottom: S.md },
+  rest: { fontSize: F.lg, fontWeight: '800' },
+  num: { fontSize: F.xs, fontWeight: '700' },
+  items: { fontSize: F.sm, fontWeight: '500' },
+  total: { fontSize: F.md, fontWeight: '900' },
+  status: { fontSize: F.sm, fontWeight: '700' },
+});
+
+// ════════ ILOVA HAQIDA ════════
+export function AppInfoScreen({ navigation }: any) {
+  const { T, isDark } = useThemeStore();
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: T.bg }} edges={['top']}>
+      <Header navigation={navigation} title="Ilova haqida" T={T} />
+      <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: S.xxl }}>
+        {/* Logo */}
+        <View style={{ alignItems: 'center', paddingVertical: S.xl }}>
+          <View style={{ width: rs(90, 110), height: rs(90, 110), borderRadius: rs(22, 27), overflow: 'hidden', marginBottom: S.md }}>
+            <View style={{ width: '100%', height: '100%', backgroundColor: C.p, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: rs(36, 44), fontWeight: '900', color: '#fff' }}>DG</Text>
+            </View>
+          </View>
+          <Text style={{ fontSize: rs(24, 30), fontWeight: '900', color: T.t1 }}>DarrovGo</Text>
+          <Text style={{ fontSize: F.sm, color: T.t3, fontWeight: '600', marginTop: 4 }}>v2.0.0 · Play Store</Text>
+        </View>
+
+        {/* Tavsif */}
+        <View style={[ai.card, { backgroundColor: T.card, borderColor: T.bd }]}>
+          <Text style={[ai.cardTitle, { color: T.t1 }]}>Ilova haqida</Text>
+          <Text style={[ai.cardTxt, { color: T.t2 }]}>
+            DarrovGo — O'zbekistondagi eng tez va qulay ovqat yetkazib berish ilovasi.
+            Mahalliy restoranlardan mazali taomlar buyurtma qiling, real vaqtda kuzating.
+          </Text>
+        </View>
+
+        {/* Imkoniyatlar */}
+        <View style={[ai.card, { backgroundColor: T.card, borderColor: T.bd }]}>
+          <Text style={[ai.cardTitle, { color: T.t1 }]}>Imkoniyatlar</Text>
+          {[
+            '🍽 100+ restoran — har xil taomlar',
+            '⚡ 30-45 daqiqada yetkazib berish',
+            '🤖 Darrov AI — shaxsiy tavsiyalar',
+            '🪙 Coin tizimi — buyurtmadan bonus',
+            '📍 Real vaqt kuzatuv',
+            '🌙 Tungi va kunduzgi rejim',
+          ].map((f, i) => (
+            <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: S.sm, marginBottom: S.sm }}>
+              <Text style={{ fontSize: F.md }}>{f.slice(0, 2)}</Text>
+              <Text style={[{ fontSize: F.sm, fontWeight: '600', color: T.t2, flex: 1 }]}>{f.slice(2).trim()}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Aloqa */}
+        <View style={[ai.card, { backgroundColor: T.card, borderColor: T.bd }]}>
+          <Text style={[ai.cardTitle, { color: T.t1 }]}>Aloqa</Text>
+          {[
+            { label: 'Email', val: 'support@darrovgo.uz' },
+            { label: 'Telegram', val: '@darrovgo' },
+            { label: 'Veb-sayt', val: 'darrovgo.uz' },
+          ].map((c, i) => (
+            <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: S.xs }}>
+              <Text style={[{ fontSize: F.sm, fontWeight: '700', color: T.t3 }]}>{c.label}</Text>
+              <Text style={[{ fontSize: F.sm, fontWeight: '700', color: C.p }]}>{c.val}</Text>
+            </View>
+          ))}
+        </View>
+
+        <Text style={{ textAlign: 'center', fontSize: F.xs, color: T.t4, marginTop: S.lg, fontWeight: '600' }}>
+          © 2026 DarrovGo. Barcha huquqlar himoyalangan.
+        </Text>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+const ai = StyleSheet.create({
+  card: { borderWidth: 1, borderRadius: R.lg, padding: S.md, marginBottom: S.md },
+  cardTitle: { fontSize: F.lg, fontWeight: '900', marginBottom: S.md },
+  cardTxt: { fontSize: F.sm, fontWeight: '500', lineHeight: rs(20, 24) },
 });
