@@ -506,6 +506,7 @@ export function CourierProfileScreen({ navigation }: any) {
             {grp.map((item, ii) => (
               <TouchableOpacity key={ii}
                 style={[kp.row, ii < grp.length - 1 && { borderBottomWidth: 0.5, borderBottomColor: T.bd }]}
+                onPress={() => Alert.alert(item.label, item.val || 'Tez orada qo\'shiladi!')}
                 activeOpacity={0.7}
               >
                 <View style={[kp.rowIcon, { backgroundColor: item.bg }]}>

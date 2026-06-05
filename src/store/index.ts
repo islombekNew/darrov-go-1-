@@ -21,6 +21,7 @@ export interface User {
   status: 'active'|'pending'|'blocked';
   regionId?: string; regionName?: string; address?: string;
   coins: number; streak: number; lastOrderDate?: string; referralCount: number;
+  avatar?: string; floor?: string; apartment?: string;
 }
 interface AuthState {
   user: User|null; token: string|null;

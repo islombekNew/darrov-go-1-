@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, ActivityIndicator,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, ActivityIndicator, Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { C, S, R, F, rs, fmtDate, fmtPrice } from '../../theme';
 import { useThemeStore, useNotifStore, useAuthStore, useCartStore, useOrderStore } from '../../store';
+import {
+  IcBell, IcMoon, IcSun, IcGlobe, IcCard, IcQuestion, IcInfo, IcChevron,
+} from '../../components/Icons';
 
 // ════════ HEADER (umumiy) ════════
 function Header({ navigation, title, T }: any) {
@@ -540,4 +543,154 @@ const ai = StyleSheet.create({
   card: { borderWidth: 1, borderRadius: R.lg, padding: S.md, marginBottom: S.md },
   cardTitle: { fontSize: F.lg, fontWeight: '900', marginBottom: S.md },
   cardTxt: { fontSize: F.sm, fontWeight: '500', lineHeight: rs(20, 24) },
+});
+
+// ════════ SOZLAMALAR ════════
+export function SettingsScreen({ navigation }: any) {
+  const { T, isDark, toggle } = useThemeStore();
+  const { notifs } = useNotifStore();
+
+  const [notifSound, setNotifSound] = useState(true);
+  const [notifPush, setNotifPush] = useState(true);
+  const [notifPromo, setNotifPromo] = useState(false);
+
+  const ToggleRow = ({ label, desc, val, onToggle, icon: Icon, iconBg }: any) => (
+    <View style={[st.row, { borderBottomWidth: 0.5, borderBottomColor: T.bd }]}>
+      <View style={[st.rowIcon, { backgroundColor: iconBg }]}>
+        <Icon color="#fff" size={rs(17, 21)} />
+      </View>
+      <View style={{ flex: 1, marginRight: S.sm }}>
+        <Text style={[st.rowLabel, { color: T.t1 }]}>{label}</Text>
+        {desc && <Text style={[st.rowDesc, { color: T.t3 }]}>{desc}</Text>}
+      </View>
+      <Switch
+        value={val}
+        onValueChange={onToggle}
+        trackColor={{ false: T.bg4, true: C.p }}
+        thumbColor="#fff"
+      />
+    </View>
+  );
+
+  const LinkRow = ({ label, val, nav, icon: Icon, iconBg }: any) => (
+    <TouchableOpacity
+      style={[st.row, { borderBottomWidth: 0.5, borderBottomColor: T.bd }]}
+      onPress={() => nav ? navigation.navigate(nav) : Alert.alert(label, 'Tez orada qo\'shiladi!')}
+      activeOpacity={0.7}
+    >
+      <View style={[st.rowIcon, { backgroundColor: iconBg }]}>
+        <Icon color="#fff" size={rs(17, 21)} />
+      </View>
+      <Text style={[st.rowLabel, { color: T.t1, flex: 1 }]}>{label}</Text>
+      {val && <Text style={[st.rowVal, { color: T.t3 }]}>{val}</Text>}
+      <IcChevron color={T.t4} size={rs(15, 18)} />
+    </TouchableOpacity>
+  );
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: T.bg }} edges={['top']}>
+      <View style={[h.hdr, { backgroundColor: T.hdrBg, borderBottomColor: T.bd }]}>
+        <TouchableOpacity style={[h.back, { backgroundColor: T.bg3 }]} onPress={() => navigation.goBack()}>
+          <Text style={{ fontSize: rs(20, 24), color: T.t2 }}>←</Text>
+        </TouchableOpacity>
+        <Text style={[h.title, { color: T.t1 }]}>Sozlamalar</Text>
+        <View style={{ width: rs(40, 50) }} />
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: S.md, paddingBottom: S.xxl }}>
+
+        {/* Ko'rinish */}
+        <Text style={[st.sectionTitle, { color: T.t3 }]}>KO'RINISH</Text>
+        <View style={[st.card, { backgroundColor: T.card, borderColor: T.bd }]}>
+          <View style={[st.row]}>
+            <View style={[st.rowIcon, { backgroundColor: isDark ? '#1a1a2a' : '#e0e0ff' }]}>
+              {isDark
+                ? <IcMoon color="#aaf" size={rs(17, 21)} />
+                : <IcSun color="#f90" size={rs(17, 21)} />}
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[st.rowLabel, { color: T.t1 }]}>{isDark ? 'Tungi rejim' : 'Kunduzgi rejim'}</Text>
+              <Text style={[st.rowDesc, { color: T.t3 }]}>Ekran yorqinligini sozlang</Text>
+            </View>
+            <Switch
+              value={isDark}
+              onValueChange={toggle}
+              trackColor={{ false: T.bg4, true: C.p }}
+              thumbColor="#fff"
+            />
+          </View>
+        </View>
+
+        {/* Til */}
+        <Text style={[st.sectionTitle, { color: T.t3 }]}>TIL</Text>
+        <View style={[st.card, { backgroundColor: T.card, borderColor: T.bd }]}>
+          <LinkRow label="Ilova tili" val="O'zbekcha" icon={IcGlobe} iconBg="#1a3a5c" nav={null} />
+        </View>
+
+        {/* Bildirishnomalar */}
+        <Text style={[st.sectionTitle, { color: T.t3 }]}>BILDIRISHNOMALAR</Text>
+        <View style={[st.card, { backgroundColor: T.card, borderColor: T.bd }]}>
+          <ToggleRow
+            label="Push bildirishnomalar"
+            desc="Buyurtma holati haqida"
+            val={notifPush}
+            onToggle={setNotifPush}
+            icon={IcBell}
+            iconBg={C.p}
+          />
+          <ToggleRow
+            label="Ovozli signal"
+            desc="Yangi bildirishnomada ovoz"
+            val={notifSound}
+            onToggle={setNotifSound}
+            icon={IcBell}
+            iconBg="#2b6cb0"
+          />
+          <View style={[st.row]}>
+            <View style={[st.rowIcon, { backgroundColor: C.amber }]}>
+              <IcBell color="#fff" size={rs(17, 21)} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[st.rowLabel, { color: T.t1 }]}>Aksiya va chegirmalar</Text>
+              <Text style={[st.rowDesc, { color: T.t3 }]}>Maxsus takliflar haqida</Text>
+            </View>
+            <Switch
+              value={notifPromo}
+              onValueChange={setNotifPromo}
+              trackColor={{ false: T.bg4, true: C.amber }}
+              thumbColor="#fff"
+            />
+          </View>
+        </View>
+
+        {/* Hisob */}
+        <Text style={[st.sectionTitle, { color: T.t3 }]}>HISOB</Text>
+        <View style={[st.card, { backgroundColor: T.card, borderColor: T.bd }]}>
+          <LinkRow label="To'lov usullari" icon={IcCard} iconBg="#2b6cb0" nav="Cards" />
+          <LinkRow label="Yetkazib berish manzili" icon={IcInfo} iconBg={C.p} nav="Address" />
+        </View>
+
+        {/* Yordam */}
+        <Text style={[st.sectionTitle, { color: T.t3 }]}>YORDAM</Text>
+        <View style={[st.card, { backgroundColor: T.card, borderColor: T.bd }]}>
+          <LinkRow label="Ko'p so'raladigan savollar" icon={IcQuestion} iconBg="#3b82f6" nav={null} />
+          <LinkRow label="Ilova haqida" icon={IcInfo} iconBg="#64748b" nav="AppInfo" />
+        </View>
+
+        <Text style={{ textAlign: 'center', fontSize: F.xs, color: T.t4, marginTop: S.md, fontWeight: '600' }}>
+          DarrovGo v2.0.0 · © 2026
+        </Text>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const st = StyleSheet.create({
+  sectionTitle: { fontSize: F.xs, fontWeight: '800', letterSpacing: 0.8, marginTop: S.lg, marginBottom: S.xs, marginLeft: S.xs },
+  card: { borderRadius: R.lg, borderWidth: 1, overflow: 'hidden', marginBottom: S.xs },
+  row: { flexDirection: 'row', alignItems: 'center', padding: S.md, gap: S.sm },
+  rowIcon: { width: rs(36, 44), height: rs(36, 44), borderRadius: rs(11, 14), alignItems: 'center', justifyContent: 'center' },
+  rowLabel: { fontSize: F.md, fontWeight: '700' },
+  rowDesc: { fontSize: F.xs, fontWeight: '500', marginTop: 2 },
+  rowVal: { fontSize: F.sm, fontWeight: '600', marginRight: S.xs },
 });

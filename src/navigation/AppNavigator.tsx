@@ -24,7 +24,7 @@ import { CustomerProfileScreen } from '../screens/customer/ProfileScreen';
 import { AiChatScreen } from '../screens/customer/AiChatScreen';
 import {
   NotificationsScreen, AddressScreen, CardsScreen,
-  ReferralScreen, TrackingScreen, CustomerOrdersScreen, AppInfoScreen,
+  ReferralScreen, TrackingScreen, CustomerOrdersScreen, AppInfoScreen, SettingsScreen,
 } from '../screens/customer/OtherScreens';
 
 // Restaurant
@@ -177,6 +177,7 @@ export default function AppNavigator() {
             <Stack.Screen name="Tracking" component={TrackingScreen} />
             <Stack.Screen name="AiChat" component={AiChatScreen} options={{ animation: 'slide_from_bottom' }} />
             <Stack.Screen name="AppInfo" component={AppInfoScreen} />
+            <Stack.Screen name="Settings" component={SettingsScreen} />
           </>
         )}
       </Stack.Navigator>

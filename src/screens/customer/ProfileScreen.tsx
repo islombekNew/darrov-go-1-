@@ -12,7 +12,7 @@ import { CoinIcon } from '../../components/CoinIcon';
 import {
   IcPin, IcCard, IcHeart, IcPromo, IcUsers, IcOrders,
   IcQuestion, IcInfo, IcMoon, IcSun, IcGlobe, IcBell,
-  IcLogout, IcChevron, IcCamera, IcProfile, IcEdit,
+  IcLogout, IcChevron, IcCamera, IcProfile, IcEdit, IcSettings,
 } from '../../components/Icons';
 
 const MENU_GROUPS = [
@@ -29,6 +29,7 @@ const MENU_GROUPS = [
   [
     { Icon: IcQuestion, label: 'Yordam',       bg: '#3b82f6', nav: null },
     { Icon: IcInfo,     label: 'Ilova haqida', bg: '#64748b', nav: 'AppInfo' },
+    { Icon: IcSettings, label: 'Sozlamalar',   bg: '#7C4DFF', nav: 'Settings' },
   ],
 ];
 
