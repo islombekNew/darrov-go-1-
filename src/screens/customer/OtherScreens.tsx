@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Location from 'expo-location';
 import { C, S, R, F, rs, fmtDate, fmtPrice } from '../../theme';
 import { useThemeStore, useNotifStore, useAuthStore, useCartStore, useOrderStore } from '../../store';
 
@@ -106,14 +107,26 @@ export function AddressScreen({ navigation }: any) {
     { id:3, icon:'❤️', label:'Onam', addr:"Mirzo Ulug'bek, Bog'ishamol 24" },
   ];
 
-  const useGps = () => {
+  const useGps = async () => {
     setGpsLoading(true);
-    // GPS simulyatsiya (real GPS keyingi versiyada expo-location bilan)
-    setTimeout(() => {
-      setAddress('Toshkent shahri, Chilonzor tumani (GPS aniqladi)');
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Ruxsat rad etildi', 'Joylashuvga ruxsat bering: Sozlamalar > Ilova > Joylashuv');
+        setGpsLoading(false);
+        return;
+      }
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      const [geo] = await Location.reverseGeocodeAsync({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+      const parts = [geo.district, geo.street, geo.streetNumber].filter(Boolean);
+      const formatted = geo.city ? `${geo.city}${parts.length ? ', ' + parts.join(', ') : ''}` : `${loc.coords.latitude.toFixed(5)}, ${loc.coords.longitude.toFixed(5)}`;
+      setAddress(formatted);
+      Alert.alert('Aniqlandi!', formatted);
+    } catch {
+      Alert.alert('Xato', "GPS aniqlanmadi. Qo'lda kiriting.");
+    } finally {
       setGpsLoading(false);
-      Alert.alert('📍', 'Joylashuvingiz aniqlandi!');
-    }, 1500);
+    }
   };
 
   const onSave = async () => {
@@ -131,12 +144,14 @@ export function AddressScreen({ navigation }: any) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding:S.lg, paddingBottom:S.xxl }}>
         {/* GPS tugma */}
         <TouchableOpacity
-          style={[as.gpsBtn, { backgroundColor:C.p }]}
+          style={[as.gpsBtn, { backgroundColor: gpsLoading ? C.p2 : C.p }]}
           onPress={useGps}
           disabled={gpsLoading}
           activeOpacity={0.88}
         >
-          <Text style={{ fontSize:rs(20,24) }}>📍</Text>
+          {gpsLoading
+            ? <ActivityIndicator color="#fff" size="small" />
+            : <Text style={{ fontSize: rs(20, 24) }}>📍</Text>}
           <Text style={as.gpsTxt}>{gpsLoading ? 'Aniqlanmoqda...' : 'Joriy joylashuvni aniqlash'}</Text>
         </TouchableOpacity>
 
