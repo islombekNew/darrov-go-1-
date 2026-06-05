@@ -33,7 +33,14 @@
       ]
     },
     "plugins": [
-      ["expo-location", { "locationAlwaysAndWhenInUsePermission": "DarrovGo ilovasi yetkazib berish uchun joylashuvingizdan foydalanadi." }]
+      ["expo-location", {
+        "locationAlwaysAndWhenInUsePermission": "DarrovGo ilovasi yetkazib berish uchun joylashuvingizdan foydalanadi.",
+        "locationWhenInUsePermission": "DarrovGo ilovasi yetkazib berish uchun joylashuvingizdan foydalanadi."
+      }],
+      ["expo-image-picker", {
+        "photosPermission": "DarrovGo ilovasi profil rasmingizni o'rnatish uchun galereyangizdan foydalanadi.",
+        "cameraPermission": "DarrovGo ilovasi profil rasmini olish uchun kameradan foydalanadi."
+      }]
     ],
     "extra": {
       "eas": {
