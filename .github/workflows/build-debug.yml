@@ -1,4 +1,4 @@
-name: Android Debug Build
+name: Android APK Build
 on:
   push:
     branches: [main]
@@ -31,8 +31,28 @@ jobs:
       - name: Expo Prebuild
         run: npx expo prebuild --platform android --no-install
 
-      - name: Build APK (debug for log)
+      - name: Generate Keystore
+        run: |
+          keytool -genkeypair -v \
+            -keystore release.keystore \
+            -alias darrovgo \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass darrovgo123 -keypass darrovgo123 \
+            -dname "CN=DarrovGo, OU=App, O=DarrovGo, L=Tashkent, S=Tashkent, C=UZ"
+
+      - name: Build Release APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace --info 2>&1 | tail -200
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/release.keystore \
+            -Pandroid.injected.signing.store.password=darrovgo123 \
+            -Pandroid.injected.signing.key.alias=darrovgo \
+            -Pandroid.injected.signing.key.password=darrovgo123
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: DarrovGo-release
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 7
