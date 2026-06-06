@@ -1,29 +1,75 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { C, S, R, F, rs, fmtPrice } from '../../theme';
 import { CATEGORIES, getLevelByCoins } from '../../constants';
-import { RESTAURANTS } from '../../constants/data';
 import { useAuthStore, useCartStore, useOrderStore, useNotifStore, useThemeStore } from '../../store';
+import { api } from '../../api/client';
+import {
+  IcPin, IcSearch, IcMoon, IcSun, IcNotifBell, IcRobot, IcRating, IcTime, IcMotorbike, IcRestaurant,
+  IcCatAll, IcCatMilli, IcCatFastFood, IcCatPizza, IcCatBurger, IcCatSushi, IcCatSoglom, IcCatIchimlik,
+  IcCoin, IcWallet, IcMedal, IcTrophy, IcDiamond, IcCrown, IcCart,
+} from '../../components/Icons';
+
+const CAT_ICONS: Record<string, React.ReactNode> = {};
+const getCatIcon = (id: string, color: string, size: number) => {
+  const p = { color, size };
+  switch (id) {
+    case 'all':       return <IcCatAll {...p} />;
+    case 'milliy':    return <IcCatMilli {...p} />;
+    case 'fastfood':  return <IcCatFastFood {...p} />;
+    case 'pizza':     return <IcCatPizza {...p} />;
+    case 'burger':    return <IcCatBurger {...p} />;
+    case 'sushi':     return <IcCatSushi {...p} />;
+    case 'soglom':    return <IcCatSoglom {...p} />;
+    case 'ichimlik':  return <IcCatIchimlik {...p} />;
+    default:          return <IcCatAll {...p} />;
+  }
+};
+
+const getLevelIcon = (icon: string, color: string, size: number) => {
+  const p = { color, size };
+  switch (icon) {
+    case '🪙': return <IcCoin {...p} />;
+    case '👝': return <IcWallet {...p} />;
+    case '🧰': return <IcMedal {...p} />;
+    case '💰': return <IcTrophy {...p} />;
+    case '💎': return <IcDiamond {...p} />;
+    case '👑': return <IcCrown {...p} />;
+    default:   return <IcCoin {...p} />;
+  }
+};
 
 export function CustomerHomeScreen({ navigation }: any) {
   const { T, isDark, toggle } = useThemeStore();
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
   const cart = useCartStore();
   const { activeOrder } = useOrderStore();
   const { unreadCount } = useNotifStore();
   const [cat, setCat] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
+  const [restaurants, setRestaurants] = useState<any[]>([]);
+  const [loadingRests, setLoadingRests] = useState(true);
 
   const coins = user?.coins ?? 0;
   const level = getLevelByCoins(coins);
   const cartCnt = cart.count();
 
-  const filtered = cat === 'all' ? RESTAURANTS : RESTAURANTS.filter(r => r.category === cat);
+  const filtered = cat === 'all' ? restaurants : restaurants.filter(r => r.category === cat);
 
-  const onRefresh = () => { setRefreshing(true); setTimeout(() => setRefreshing(false), 800); };
+  const loadRestaurants = useCallback(async () => {
+    try {
+      const data = await api.get<any[]>('/restaurants', token);
+      setRestaurants(data);
+    } catch {}
+    finally { setLoadingRests(false); }
+  }, [token]);
+
+  useEffect(() => { loadRestaurants(); }, [loadRestaurants]);
+
+  const onRefresh = async () => { setRefreshing(true); await loadRestaurants(); setRefreshing(false); };
 
   return (
     <SafeAreaView style={[s.safe, { backgroundColor: T.bg }]} edges={['top']}>
@@ -31,10 +77,13 @@ export function CustomerHomeScreen({ navigation }: any) {
       <View style={[s.header, { backgroundColor: T.hdrBg, borderBottomColor: T.bd }]}>
         <View style={s.hdrTop}>
           <TouchableOpacity onPress={() => navigation.navigate('Address')} style={{ flex: 1 }}>
-            <Text style={[s.locSub, { color: T.t3 }]}>📍 Joylashuv</Text>
+            <View style={[s.locSub, { flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+              <IcPin color={C.p} size={rs(12, 15)} />
+              <Text style={[{ fontSize: F.xs, fontWeight: '700', color: T.t3 }]}>Joylashuv</Text>
+            </View>
             <View style={s.locRow}>
               <Text style={[s.locCity, { color: T.t1 }]} numberOfLines={1}>
-                {user?.address || 'Chilonzor, Toshkent'}
+                {user?.address || 'Manzilni tanlang'}
               </Text>
               <Text style={{ fontSize: rs(12, 15), color: T.t3 }}> ▾</Text>
             </View>
@@ -44,20 +93,20 @@ export function CustomerHomeScreen({ navigation }: any) {
               style={[s.coinChip, { backgroundColor: isDark ? level.bgColor : C.ambBg, borderColor: C.gold }]}
               onPress={() => navigation.navigate('Marra')}
             >
-              <Text style={{ fontSize: rs(14, 17) }}>{level.icon}</Text>
+              {getLevelIcon(level.icon, isDark ? C.gold : '#7A5500', rs(14, 17))}
               <Text style={[s.coinTxt, { color: isDark ? C.gold : '#7A5500' }]}>{coins}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[s.iconBtn, { backgroundColor: T.bg3 }]} onPress={() => navigation.navigate('Notifications')}>
-              <Text style={{ fontSize: rs(18, 22) }}>🔔</Text>
+              <IcNotifBell color={T.t2} size={rs(20, 24)} hasUnread={unreadCount > 0} />
               {unreadCount > 0 && <View style={[s.badge, { backgroundColor: C.rd }]}><Text style={s.badgeTxt}>{unreadCount}</Text></View>}
             </TouchableOpacity>
             <TouchableOpacity style={[s.iconBtn, { backgroundColor: T.bg3 }]} onPress={toggle}>
-              <Text style={{ fontSize: rs(16, 20) }}>{isDark ? '☀️' : '🌙'}</Text>
+              {isDark ? <IcSun color={T.t2} size={rs(18, 22)} /> : <IcMoon color={T.t2} size={rs(18, 22)} />}
             </TouchableOpacity>
           </View>
         </View>
         <TouchableOpacity style={[s.search, { backgroundColor: isDark ? T.bg3 : '#fff' }]} activeOpacity={0.9}>
-          <Text style={{ fontSize: rs(15, 18), color: T.t4 }}>🔍</Text>
+          <IcSearch color={T.t4} size={rs(16, 20)} />
           <Text style={[s.searchHint, { color: T.t4 }]}>Restoran yoki taom izlang...</Text>
         </TouchableOpacity>
       </View>
@@ -110,7 +159,7 @@ export function CustomerHomeScreen({ navigation }: any) {
                 { backgroundColor: cat === c.id ? (isDark ? '#2a1400' : C.plt) : T.bg3 },
                 cat === c.id && { borderColor: C.p, borderWidth: 2 },
               ]}>
-                <Text style={{ fontSize: rs(24, 29) }}>{c.emoji}</Text>
+                {getCatIcon(c.id, cat === c.id ? C.p : T.t3, rs(26, 32))}
               </View>
               <Text style={[s.catLbl, { color: cat === c.id ? C.p : T.t3 }, cat === c.id && { fontWeight: '900' }]}>{c.label}</Text>
             </TouchableOpacity>
@@ -119,8 +168,19 @@ export function CustomerHomeScreen({ navigation }: any) {
 
         {/* RESTORANLAR */}
         <Text style={[s.secTitle, { color: T.t1 }]}>
-          {filtered.length} ta restoran
+          {loadingRests ? 'Yuklanmoqda...' : `${filtered.length} ta restoran`}
         </Text>
+        {loadingRests && (
+          <View style={{ alignItems: 'center', paddingVertical: rs(30, 40) }}>
+            <ActivityIndicator size="large" color={C.p} />
+          </View>
+        )}
+        {!loadingRests && filtered.length === 0 && (
+          <View style={{ alignItems: 'center', paddingVertical: rs(30, 40) }}>
+            <IcRestaurant color={T.t4} size={rs(48, 60)} />
+            <Text style={{ fontSize: F.md, fontWeight: '700', color: T.t3, marginTop: S.sm }}>Restoranlar topilmadi</Text>
+          </View>
+        )}
         {filtered.map(rest => (
           <TouchableOpacity
             key={rest.id}
@@ -129,7 +189,9 @@ export function CustomerHomeScreen({ navigation }: any) {
             activeOpacity={0.9}
           >
             <View style={[s.restImg, { backgroundColor: isDark ? T.bg3 : C.plt }]}>
-              <Text style={{ fontSize: rs(40, 48) }}>{rest.emoji}</Text>
+              {rest.category === 'milliy'
+                ? <IcCatMilli color={isDark ? C.p : C.pdk} size={rs(44, 54)} />
+                : <IcRestaurant color={isDark ? C.p : C.pdk} size={rs(44, 54)} />}
               {!rest.isOpen && (
                 <View style={s.closedOverlay}>
                   <Text style={s.closedTxt}>Yopiq</Text>
@@ -140,13 +202,15 @@ export function CustomerHomeScreen({ navigation }: any) {
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text style={[s.restName, { color: T.t1 }]}>{rest.name}</Text>
                 <View style={[s.ratingPill, { backgroundColor: isDark ? '#1a1500' : C.ambBg }]}>
-                  <Text style={{ fontSize: rs(11, 13) }}>⭐</Text>
-                  <Text style={[s.ratingTxt, { color: C.amber }]}>{rest.rating}</Text>
+                  <IcRating color={C.amber} size={rs(13, 16)} />
+                  <Text style={[s.ratingTxt, { color: C.amber }]}>{(rest.rating ?? 5).toFixed(1)}</Text>
                 </View>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: S.sm, marginTop: 4 }}>
-                <Text style={[s.restMeta, { color: T.t3 }]}>🕐 {rest.deliveryTime}</Text>
-                <Text style={[s.restMeta, { color: T.t3 }]}>🛵 {fmtPrice(rest.deliveryFee)}</Text>
+                <IcTime color={T.t4} size={rs(12, 14)} />
+                <Text style={[s.restMeta, { color: T.t3 }]}>{rest.deliveryTime ?? '30-45 daq'}</Text>
+                <IcMotorbike color={T.t4} size={rs(12, 14)} />
+                <Text style={[s.restMeta, { color: T.t3 }]}>{fmtPrice(rest.minOrder ?? 20000)}dan</Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -159,7 +223,7 @@ export function CustomerHomeScreen({ navigation }: any) {
           activeOpacity={0.88}
         >
           <View style={[s.aiIcon, { backgroundColor: isDark ? '#2a1400' : C.plt, borderColor: C.p }]}>
-            <Text style={{ fontSize: rs(22, 26) }}>🤖</Text>
+            <IcRobot color={C.p} size={rs(24, 29)} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[s.aiTitle, { color: T.t1 }]}>Darrov AI Maslahatchi</Text>
@@ -172,9 +236,11 @@ export function CustomerHomeScreen({ navigation }: any) {
       {/* SAVAT FAB */}
       {cartCnt > 0 && (
         <TouchableOpacity style={[s.cartFab, { backgroundColor: C.p }]} onPress={() => navigation.navigate('Cart')} activeOpacity={0.9}>
-          <View style={s.cartBadge}><Text style={s.cartBadgeTxt}>{cartCnt}</Text></View>
+          <View style={s.cartBadge}>
+            <IcCart color="#fff" size={rs(18, 22)} />
+          </View>
           <Text style={s.cartFabLbl}>Savatni ko'rish</Text>
-          <Text style={s.cartFabTotal}>{fmtPrice(cart.total())} →</Text>
+          <Text style={s.cartFabTotal}>{cartCnt} ta · {fmtPrice(cart.total())}</Text>
         </TouchableOpacity>
       )}
     </SafeAreaView>
@@ -185,7 +251,7 @@ const s = StyleSheet.create({
   safe: { flex: 1 },
   header: { paddingHorizontal: S.lg, paddingTop: S.sm, paddingBottom: S.md, borderBottomWidth: 1 },
   hdrTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: S.md, gap: S.sm },
-  locSub: { fontSize: F.xs, fontWeight: '700', marginBottom: 3 },
+  locSub: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 3 },
   locRow: { flexDirection: 'row', alignItems: 'center' },
   locCity: { fontSize: F.lg, fontWeight: '800', maxWidth: rs(160, 220) },
   hdrRight: { flexDirection: 'row', alignItems: 'center', gap: S.sm },

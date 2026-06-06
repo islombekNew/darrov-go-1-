@@ -54,6 +54,7 @@ model User {
   orders        Order[]    @relation("CustomerOrders")
   restaurant    Restaurant?
   courier       Courier?
+  cards         PaymentCard[]
 }
 
 model OTP {
@@ -123,6 +124,30 @@ model Courier {
 
   user       User     @relation(fields: [userId], references: [id])
   deliveries Order[]
+}
+
+model PaymentCard {
+  id        String   @id @default(cuid())
+  userId    String
+  pan       String
+  expiry    String
+  holder    String?
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PromoCode {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  discount    Int
+  type        String   @default("percent")
+  minOrder    Int      @default(0)
+  usageLimit  Int      @default(100)
+  usedCount   Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
 }
 
 model Order {

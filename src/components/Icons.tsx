@@ -410,3 +410,283 @@ export const IcToggleOff = ({ color = '#888', size = 22 }: P) => (
     <Circle cx="8" cy="12" r="4" fill={color} opacity="0.5"/>
   </Svg>
 );
+
+export const IcCart = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Line x1="3" y1="6" x2="21" y2="6" stroke={color} strokeWidth="2"/>
+    <Path d="M16 10a4 4 0 01-8 0" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+  </Svg>
+);
+
+export const IcHouse = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M3 10.5L12 3l9 7.5V21H15v-5h-6v5H3V10.5z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Line x1="9" y1="21" x2="9" y2="16" stroke={color} strokeWidth="1.5"/>
+    <Line x1="15" y1="21" x2="15" y2="16" stroke={color} strokeWidth="1.5"/>
+    <Rect x="10" y="11" width="4" height="4" rx="0.5" stroke={color} strokeWidth="1.5"/>
+  </Svg>
+);
+
+export const IcBuilding = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect x="3" y="3" width="18" height="18" rx="2" stroke={color} strokeWidth="2"/>
+    <Path d="M3 9h18M9 9v12M15 9v12" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+    <Rect x="5" y="5" width="3" height="2" rx="0.5" fill={color} opacity="0.6"/>
+    <Rect x="11" y="5" width="3" height="2" rx="0.5" fill={color} opacity="0.6"/>
+    <Rect x="17" y="5" width="3" height="2" rx="0.5" fill={color} opacity="0.6"/>
+  </Svg>
+);
+
+export const IcFloor = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect x="2" y="2" width="20" height="20" rx="2" stroke={color} strokeWidth="2"/>
+    <Line x1="2" y1="8" x2="22" y2="8" stroke={color} strokeWidth="1.5" strokeDasharray="2 2"/>
+    <Line x1="2" y1="14" x2="22" y2="14" stroke={color} strokeWidth="1.5" strokeDasharray="2 2"/>
+    <Rect x="9" y="15" width="6" height="7" rx="1" stroke={color} strokeWidth="1.5"/>
+  </Svg>
+);
+
+export const IcNavigate = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M3 11l19-9-9 19-2-8-8-2z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+  </Svg>
+);
+
+export const IcClipboard = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke={color} strokeWidth="2"/>
+    <Rect x="9" y="3" width="6" height="4" rx="1" stroke={color} strokeWidth="2"/>
+    <Line x1="9" y1="12" x2="15" y2="12" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    <Line x1="9" y1="16" x2="12" y2="16" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+  </Svg>
+);
+
+export const IcDelivery = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M1 3h15v13H1z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Path d="M16 8h4l3 5v3h-7V8z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Circle cx="5.5" cy="18.5" r="2.5" stroke={color} strokeWidth="2"/>
+    <Circle cx="18.5" cy="18.5" r="2.5" stroke={color} strokeWidth="2"/>
+  </Svg>
+);
+
+export const IcPercent = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle cx="8" cy="8" r="3" stroke={color} strokeWidth="2"/>
+    <Circle cx="16" cy="16" r="3" stroke={color} strokeWidth="2"/>
+    <Line x1="4" y1="20" x2="20" y2="4" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+  </Svg>
+);
+
+export const IcBag = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Line x1="3" y1="6" x2="21" y2="6" stroke={color} strokeWidth="2"/>
+    <Path d="M16 10a4 4 0 01-8 0" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+  </Svg>
+);
+
+export const IcDoor = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Path d="M14 2v6h6" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Circle cx="13" cy="14" r="1" fill={color}/>
+  </Svg>
+);
+
+export const IcEntrance = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect x="3" y="3" width="18" height="18" rx="2" stroke={color} strokeWidth="2"/>
+    <Rect x="8" y="11" width="8" height="10" rx="1" stroke={color} strokeWidth="2"/>
+    <Circle cx="14" cy="16" r="1" fill={color}/>
+    <Path d="M8 8h8M12 5v6" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+  </Svg>
+);
+
+export const IcComment = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Line x1="8" y1="10" x2="16" y2="10" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+    <Line x1="8" y1="14" x2="12" y2="14" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+  </Svg>
+);
+
+export const IcTarget = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle cx="12" cy="12" r="9" stroke={color} strokeWidth="2"/>
+    <Circle cx="12" cy="12" r="5" stroke={color} strokeWidth="1.5" opacity="0.6"/>
+    <Circle cx="12" cy="12" r="2" fill={color}/>
+    <Line x1="12" y1="2" x2="12" y2="5" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <Line x1="12" y1="19" x2="12" y2="22" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <Line x1="2" y1="12" x2="5" y2="12" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <Line x1="19" y1="12" x2="22" y2="12" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+  </Svg>
+);
+
+export const IcReferral = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle cx="9" cy="7" r="3" stroke={color} strokeWidth="2"/>
+    <Circle cx="17" cy="9" r="3" stroke={color} strokeWidth="2"/>
+    <Path d="M3 20c0-3.5 2.7-6 6-6" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <Path d="M11 20c0-3 2.2-5.5 6-5.5s6 2.5 6 5.5" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <Line x1="11" y1="7" x2="14" y2="9" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeDasharray="2 2"/>
+  </Svg>
+);
+
+export const IcTruck = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M1 3h15v13H1z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Path d="M16 8h4l3 5v3h-7V8z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Circle cx="5.5" cy="18.5" r="2.5" stroke={color} strokeWidth="2"/>
+    <Circle cx="18.5" cy="18.5" r="2.5" stroke={color} strokeWidth="2"/>
+  </Svg>
+);
+
+export const IcPreparing = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M3 3h18v3H3z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Path d="M3 6c0 7.18 4.03 13.24 9 15 4.97-1.76 9-7.82 9-15" stroke={color} strokeWidth="2"/>
+    <Path d="M9 12l2 2 4-4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </Svg>
+);
+
+export const IcRating = ({ color = '#FFD166', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24">
+    <Path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill={color} opacity="0.9"/>
+  </Svg>
+);
+
+export const IcMedal = ({ color = '#FFD166', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle cx="12" cy="14" r="7" stroke={color} strokeWidth="2"/>
+    <Circle cx="12" cy="14" r="4" stroke={color} strokeWidth="1" opacity="0.4"/>
+    <Path d="M8 4l-3-3h6l2 6M16 4l3-3h-6l-2 6" stroke={color} strokeWidth="1.8" strokeLinejoin="round"/>
+    <Line x1="12" y1="12" x2="12" y2="16" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+  </Svg>
+);
+
+export const IcOnline = ({ color = '#1DB954', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle cx="12" cy="12" r="4" fill={color}/>
+    <Circle cx="12" cy="12" r="8" stroke={color} strokeWidth="1.5" opacity="0.4"/>
+    <Circle cx="12" cy="12" r="11" stroke={color} strokeWidth="1" opacity="0.2"/>
+  </Svg>
+);
+
+export const IcEarnings = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M12 2v20M17 7H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H6" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </Svg>
+);
+
+export const IcRefresh = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M23 4v6h-6" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <Path d="M1 20v-6h6" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <Path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </Svg>
+);
+
+export const IcSoundOn = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect x="2" y="8" width="5" height="8" rx="1" stroke={color} strokeWidth="2"/>
+    <Path d="M7 8L15 4v16L7 16" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Path d="M18 9a5 5 0 010 6" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <Path d="M20 6a9 9 0 010 12" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+  </Svg>
+);
+
+export const IcSoundOff = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect x="2" y="8" width="5" height="8" rx="1" stroke={color} strokeWidth="2"/>
+    <Path d="M7 8L15 4v16L7 16" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Line x1="17" y1="9" x2="23" y2="15" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <Line x1="23" y1="9" x2="17" y2="15" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+  </Svg>
+);
+
+export const IcNotifBell = ({ color = '#fff', size = 22, hasUnread = false }: P & { hasUnread?: boolean }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M6 10a6 6 0 0112 0v3.5l2 2.5H4l2-2.5V10z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Path d="M10 18.5a2 2 0 004 0" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    {hasUnread && <Circle cx="18" cy="5" r="4" fill="#E84040"/>}
+  </Svg>
+);
+
+// ── CATEGORY ICONS ──────────────────────────────
+export const IcCatAll = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M3 12h18M3 6h18M3 18h18" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <Circle cx="20" cy="6" r="2" fill={color}/>
+    <Circle cx="20" cy="12" r="2" fill={color}/>
+    <Circle cx="20" cy="18" r="2" fill={color}/>
+  </Svg>
+);
+
+export const IcCatMilli = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M4 10c0-3.3 3.6-6 8-6s8 2.7 8 6v2H4v-2z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Path d="M3 12h18v2a9 9 0 01-18 0v-2z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Line x1="12" y1="20" x2="12" y2="23" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <Line x1="8" y1="23" x2="16" y2="23" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+  </Svg>
+);
+
+export const IcCatFastFood = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M4 10h16l-1 9H5l-1-9z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Path d="M3 10c0-2.2 4-4 9-4s9 1.8 9 4" stroke={color} strokeWidth="2"/>
+    <Line x1="8" y1="2" x2="8" y2="6" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <Line x1="12" y1="2" x2="12" y2="5" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <Line x1="16" y1="2" x2="16" y2="6" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+  </Svg>
+);
+
+export const IcCatPizza = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M12 2L3 20h18L12 2z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Circle cx="9" cy="14" r="1.5" fill={color} opacity="0.7"/>
+    <Circle cx="14" cy="11" r="1.5" fill={color} opacity="0.7"/>
+    <Circle cx="13" cy="17" r="1" fill={color} opacity="0.5"/>
+    <Line x1="3" y1="20" x2="21" y2="20" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+  </Svg>
+);
+
+export const IcCatBurger = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M5 7.5C5 5.57 8.13 4 12 4s7 1.57 7 3.5" stroke={color} strokeWidth="2"/>
+    <Rect x="3" y="7" width="18" height="3" rx="1.5" stroke={color} strokeWidth="2"/>
+    <Rect x="3" y="14" width="18" height="3" rx="1.5" stroke={color} strokeWidth="2"/>
+    <Line x1="3" y1="10" x2="21" y2="10" stroke={color} strokeWidth="1.2" opacity="0.4"/>
+    <Path d="M3 17c0 1.93 4.03 3.5 9 3.5s9-1.57 9-3.5" stroke={color} strokeWidth="2"/>
+  </Svg>
+);
+
+export const IcCatSushi = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect x="3" y="9" width="18" height="10" rx="5" stroke={color} strokeWidth="2"/>
+    <Rect x="7" y="11" width="10" height="6" rx="2" fill={color} opacity="0.18"/>
+    <Circle cx="12" cy="14" r="2.5" fill={color} opacity="0.6"/>
+    <Line x1="3" y1="14" x2="21" y2="14" stroke={color} strokeWidth="1.2" opacity="0.35"/>
+    <Path d="M9 9V7a3 3 0 016 0v2" stroke={color} strokeWidth="2"/>
+  </Svg>
+);
+
+export const IcCatSoglom = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M12 22C6 22 4 17 4 12a8 8 0 0116 0c0 5-2 10-8 10z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Path d="M12 12c-2-3-2-6 0-8 2 2 2 5 0 8z" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+    <Line x1="9" y1="13" x2="15" y2="13" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+  </Svg>
+);
+
+export const IcCatIchimlik = ({ color = '#fff', size = 22 }: P) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M5 4h14l-2 14H7L5 4z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
+    <Line x1="5" y1="10" x2="19" y2="10" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+    <Line x1="14" y1="6" x2="14" y2="20" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeDasharray="2 2"/>
+    <Path d="M10 2c0 2-1.5 2-1.5 4" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+    <Path d="M14 2c0 2-1.5 2-1.5 4" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+  </Svg>
+);

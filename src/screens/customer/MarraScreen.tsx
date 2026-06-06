@@ -5,6 +5,7 @@ import { C, S, R, F, rs } from '../../theme';
 import { useAuthStore, useThemeStore } from '../../store';
 import { getLevelByCoins, getNextLevel, getLevelProgress, LEVELS } from '../../constants';
 import { CoinIcon } from '../../components/CoinIcon';
+import { IcArrowLeft, IcMotorbike, IcRestaurant, IcReferral, IcGift, IcCheck, IcCrown } from '../../components/Icons';
 
 export function MarraScreen({ navigation }: any) {
   const { T, isDark } = useThemeStore();
@@ -20,7 +21,7 @@ export function MarraScreen({ navigation }: any) {
       {/* Header */}
       <View style={[s.hdr, { backgroundColor: T.hdrBg, borderBottomColor: T.bd }]}>
         <TouchableOpacity style={[s.back, { backgroundColor: T.bg3 }]} onPress={() => navigation.goBack()}>
-          <Text style={{ fontSize: rs(20, 24), color: T.t2 }}>←</Text>
+          <IcArrowLeft color={T.t2} size={rs(20, 24)} />
         </TouchableOpacity>
         <Text style={[s.hdrTitle, { color: T.t1 }]}>Coinlar va Darajalar</Text>
         <View style={{ width: rs(40, 50) }} />
@@ -46,9 +47,10 @@ export function MarraScreen({ navigation }: any) {
               </Text>
             </View>
           ) : (
-            <Text style={[s.progTxt, { color: level.color, marginTop: S.sm }]}>
-              👑 Eng yuqori daraja — Legends!
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: S.xs, marginTop: S.sm }}>
+              <IcCrown color={level.color} size={rs(18, 22)} />
+              <Text style={[s.progTxt, { color: level.color }]}>Eng yuqori daraja — Legends!</Text>
+            </View>
           )}
         </View>
 
@@ -56,14 +58,14 @@ export function MarraScreen({ navigation }: any) {
         <View style={[s.section, { backgroundColor: T.card, borderColor: T.bd }]}>
           <Text style={[s.secTitle, { color: T.t1 }]}>Coin qanday topiladi?</Text>
           {[
-            { icon:'🛵', title:"60 000+ so'm buyurtma", sub:'Har bunday buyurtma uchun', coin:5, color:C.p },
-            { icon:'🍽', title:"60 000 so'mdan kam", sub:'Kichik buyurtmalar uchun', coin:3, color:C.amber },
-            { icon:'👥', title:"Do'st taklif qilish", sub:'Har bir do\'st uchun', coin:3, color:C.gn },
-            { icon:'🎁', title:"Ro'yxatdan o'tish", sub:'Bir martalik bonus', coin:5, color:C.pu },
+            { ic: <IcMotorbike color={C.p} size={rs(22,26)} />, title:"60 000+ so'm buyurtma", sub:'Har bunday buyurtma uchun', coin:5, color:C.p },
+            { ic: <IcRestaurant color={C.amber} size={rs(22,26)} />, title:"60 000 so'mdan kam", sub:'Kichik buyurtmalar uchun', coin:3, color:C.amber },
+            { ic: <IcReferral color={C.gn} size={rs(22,26)} />, title:"Do'st taklif qilish", sub:'Har bir do\'st uchun', coin:3, color:C.gn },
+            { ic: <IcGift color={C.pu} size={rs(22,26)} />, title:"Ro'yxatdan o'tish", sub:'Bir martalik bonus', coin:5, color:C.pu },
           ].map((item, i) => (
             <View key={i} style={[s.coinRow, i < 3 && { borderBottomWidth: 0.5, borderBottomColor: T.bd }]}>
               <View style={[s.coinIcon, { backgroundColor: isDark ? '#1a1000' : C.ambBg }]}>
-                <Text style={{ fontSize: rs(22, 26) }}>{item.icon}</Text>
+                {item.ic}
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.coinTitle, { color: T.t1 }]}>{item.title}</Text>
@@ -101,7 +103,7 @@ export function MarraScreen({ navigation }: any) {
               </View>
             )}
             {coins >= lvl.minCoins && lvl.level < level.level && (
-              <Text style={{ fontSize: rs(16, 20), color: C.gn }}>✓</Text>
+              <IcCheck color={C.gn} size={rs(18, 22)} />
             )}
           </View>
         ))}

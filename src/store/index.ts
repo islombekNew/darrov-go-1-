@@ -21,7 +21,7 @@ export interface User {
   status: 'active'|'pending'|'blocked';
   regionId?: string; regionName?: string; address?: string;
   coins: number; streak: number; lastOrderDate?: string; referralCount: number;
-  avatar?: string; floor?: string; apartment?: string;
+  avatar?: string; floor?: string; apartment?: string; referralCode?: string;
 }
 interface AuthState {
   user: User|null; token: string|null;
@@ -60,13 +60,8 @@ interface NotifState {
   markAllRead: () => void;
 }
 export const useNotifStore = create<NotifState>((set, get) => ({
-  notifs: [
-    { id:'n1', type:'coin_earned', read:false, createdAt:new Date(),
-      title:'Xush kelibsiz!', body:`Ro'yxatdan o'tganingiz uchun +${COIN.WELCOME} coin berildi!` },
-    { id:'n2', type:'promo', read:false, createdAt:new Date(Date.now()-86400000),
-      title:'Maxsus taklif!', body:'Bugun barcha buyurtmalarda +2 qo\'shimcha coin!' },
-  ],
-  unreadCount: 2,
+  notifs: [],
+  unreadCount: 0,
   add: (n) => {
     const notif: Notif = { ...n, id:'n_'+Date.now(), read:false, createdAt:new Date() };
     set(s => ({ notifs:[notif,...s.notifs], unreadCount:s.unreadCount+1 }));
@@ -145,14 +140,7 @@ interface RestOrderState {
   readyOrder:(id:string)=>void; rejectOrder:(id:string)=>void; tickTimers:()=>void;
 }
 export const useRestOrderStore = create<RestOrderState>((set, get) => ({
-  orders:[
-    { id:'ro1',orderNumber:4832,status:'new',clientName:'Anvar S.',address:"Yunusobod, Amir Temur 45",
-      items:"2× Palov · 1× Somsa",subtotal:68000,myShare:61200,platformShare:6800,deliveryFee:9000,createdAt:new Date(),timer:42 },
-    { id:'ro2',orderNumber:4833,status:'new',clientName:'Dilnoza M.',address:'Chilonzor, Navruz 12',
-      items:"1× Lag'mon · 1× Mastava",subtotal:45000,myShare:40500,platformShare:4500,deliveryFee:8000,createdAt:new Date(Date.now()-120000),timer:125 },
-    { id:'ro3',orderNumber:4829,status:'preparing',clientName:'Bobur T.',address:"Mirzo Ulug'bek, 7",
-      items:'3× Kabob · 1× Non',subtotal:72000,myShare:64800,platformShare:7200,deliveryFee:12000,createdAt:new Date(Date.now()-600000),timer:0 },
-  ],
+  orders:[],
   addOrder:(o)=>set(s=>({orders:[o,...s.orders]})),
   acceptOrder:(id)=>set(s=>({orders:s.orders.map(o=>o.id===id?{...o,status:'accepted'}:o)})),
   readyOrder:(id)=>set(s=>({orders:s.orders.map(o=>o.id===id?{...o,status:'ready'}:o)})),

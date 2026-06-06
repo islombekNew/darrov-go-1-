@@ -13,6 +13,7 @@ app.use('/api/restaurants', require('./routes/restaurants'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/couriers', require('./routes/couriers'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/cards', require('./routes/cards'));
 app.use('/api/regions', require('./routes/regions'));
 
 // Health check

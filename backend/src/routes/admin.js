@@ -237,4 +237,56 @@ router.get('/couriers', async (req, res) => {
   }
 });
 
+// GET /api/admin/promos
+router.get('/promos', async (req, res) => {
+  try {
+    if (req.userRole !== 'SUPERADMIN') return res.status(403).json({ error: 'Superadmin kerak' });
+    const promos = await prisma.promoCode.findMany({ orderBy: { createdAt: 'desc' } });
+    res.json(promos);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// POST /api/admin/promos
+router.post('/promos', async (req, res) => {
+  try {
+    if (req.userRole !== 'SUPERADMIN') return res.status(403).json({ error: 'Superadmin kerak' });
+    const { code, discount, type = 'percent', minOrder = 0, usageLimit = 100 } = req.body;
+    if (!code || !discount) return res.status(400).json({ error: 'Kod va chegirma kerak' });
+
+    const promo = await prisma.promoCode.create({
+      data: { code: code.toUpperCase(), discount: Number(discount), type, minOrder: Number(minOrder), usageLimit: Number(usageLimit) },
+    });
+    res.json(promo);
+  } catch (err) {
+    if (err.code === 'P2002') return res.status(400).json({ error: 'Bu kod allaqachon mavjud' });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/admin/promos/:id
+router.delete('/promos/:id', async (req, res) => {
+  try {
+    if (req.userRole !== 'SUPERADMIN') return res.status(403).json({ error: 'Superadmin kerak' });
+    await prisma.promoCode.delete({ where: { id: req.params.id } });
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// POST /api/admin/promos/validate (mijoz tomonidan)
+router.post('/promos/validate', async (req, res) => {
+  try {
+    const { code, orderTotal } = req.body;
+    const promo = await prisma.promoCode.findUnique({ where: { code: code.toUpperCase() } });
+    if (!promo || !promo.active) return res.status(400).json({ error: 'Promo kod topilmadi' });
+    if (promo.usedCount >= promo.usageLimit) return res.status(400).json({ error: 'Promo kod tugagan' });
+    if (promo.minOrder > 0 && orderTotal < promo.minOrder) return res.status(400).json({ error: `Minimal buyurtma: ${promo.minOrder} so'm` });
+
+    const discount = promo.type === 'percent'
+      ? Math.round(orderTotal * promo.discount / 100)
+      : promo.discount;
+
+    res.json({ ok: true, discount, promoId: promo.id, type: promo.type, value: promo.discount });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;
