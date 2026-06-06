@@ -32,6 +32,7 @@
       ]
     },
     "plugins": [
+      "./plugins/withAaptOptions",
       [
         "expo-location",
         {
