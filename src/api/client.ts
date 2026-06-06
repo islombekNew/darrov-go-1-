@@ -22,7 +22,14 @@ async function request<T>(
   });
 
   const data = await res.json();
-  if (!res.ok) throw new ApiError(data.error || 'Server xatosi', res.status);
+  if (!res.ok) {
+    // Token muddati tugagan yoki noto'g'ri — avtomatik logout
+    if (res.status === 401) {
+      const { useAuthStore } = require('../store');
+      useAuthStore.getState().logout();
+    }
+    throw new ApiError(data.error || 'Server xatosi', res.status);
+  }
   return data as T;
 }
 
