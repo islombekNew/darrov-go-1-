@@ -11,7 +11,7 @@ import {
   IcBell, IcMoon, IcSun, IcGlobe, IcCard, IcQuestion, IcInfo, IcChevron,
   IcArrowLeft, IcTarget, IcPin, IcHouse, IcBuilding, IcFloor, IcEntrance,
   IcComment, IcCheck, IcOnline, IcCoin, IcTruck, IcRestaurant, IcGift,
-  IcReferral, IcTrophy, IcTime, IcMotorbike, IcPhone, IcShare, IcCopy, IcPromo,
+  IcReferral, IcTrophy, IcTime, IcMotorbike, IcPhone, IcShare, IcCopy, IcPromo, IcOrders,
 } from '../../components/Icons';
 
 // ════════ HEADER (umumiy) ════════
@@ -522,22 +522,22 @@ export function ReferralScreen({ navigation }: any) {
       <Header navigation={navigation} title="Do'stlarni taklif qilish" T={T} />
       <ScrollView contentContainerStyle={{ padding:S.lg }}>
         <View style={[rf.hero, { backgroundColor:isDark?C.gndk:C.gnb, borderColor:C.gn }]}>
-          <Text style={{ fontSize:rs(56,68) }}>🎁</Text>
+          <IcGift color={C.gn} size={rs(56, 68)} />
           <Text style={[rf.heroTitle, { color:T.t1 }]}>Do'st taklif qiling</Text>
           <Text style={[rf.heroSub, { color:T.t3 }]}>Har bir do'st uchun +3 coin!</Text>
         </View>
         <Text style={[rf.lbl, { color:T.t1 }]}>Sizning kodingiz</Text>
         <View style={[rf.codeBox, { backgroundColor:T.bg2, borderColor:C.p }]}>
           <Text style={[rf.code, { color:C.p }]}>{code}</Text>
-          <TouchableOpacity onPress={() => Alert.alert('✅', 'Kod nusxalandi!')}>
-            <Text style={{ fontSize:rs(22,26) }}>📋</Text>
+          <TouchableOpacity onPress={() => Alert.alert('✅', 'Kod nusxalandi!')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <IcCopy color={C.p} size={rs(22, 26)} />
           </TouchableOpacity>
         </View>
         <TouchableOpacity
           style={[rf.shareBtn, { backgroundColor:C.gn }]}
           onPress={() => Alert.alert('Ulashish', `Do'stingizga yuboring:\n\nDarrovGo ilovasini yuklab oling va ${code} kodini kiriting — ikkalamiz ham coin olamiz!`)}
         >
-          <Text style={{ fontSize:rs(18,22) }}>📤</Text>
+          <IcShare color="#fff" size={rs(18, 22)} />
           <Text style={rf.shareTxt}>Do'stlarga ulashish</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -697,7 +697,7 @@ export function CustomerOrdersScreen({ navigation }: any) {
         </View>
       ) : orders.length === 0 ? (
         <View style={{ flex:1, alignItems:'center', justifyContent:'center', padding:S.xxl }}>
-          <Text style={{ fontSize:rs(56,68), marginBottom:S.md }}>📋</Text>
+          <IcOrders color={T.t4} size={rs(56, 68)} />
           <Text style={{ fontSize:F.xl, fontWeight:'800', color:T.t2, marginBottom:S.sm }}>Buyurtma yo'q</Text>
           <Text style={{ fontSize:F.md, color:T.t4, textAlign:'center' }}>Birinchi buyurtmangizni bering!</Text>
           <TouchableOpacity

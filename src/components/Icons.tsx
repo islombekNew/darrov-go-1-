@@ -681,6 +681,21 @@ export const IcCatSoglom = ({ color = '#fff', size = 22 }: P) => (
   </Svg>
 );
 
+export const IcUzFlag = ({ size = 16 }: { size?: number }) => {
+  const w = Math.round(size * 1.5);
+  return (
+    <Svg width={w} height={size} viewBox="0 0 150 100">
+      <Rect x="0" y="0" width="150" height="31" fill="#1EB3DB" rx="2"/>
+      <Rect x="0" y="31" width="150" height="5" fill="#fff"/>
+      <Rect x="0" y="36" width="150" height="30" fill="#fff"/>
+      <Rect x="0" y="66" width="150" height="5" fill="#fff"/>
+      <Rect x="0" y="71" width="150" height="29" fill="#1BA652" rx="2"/>
+      <Circle cx="26" cy="16" r="11" fill="#fff" opacity="0.95"/>
+      <Circle cx="31" cy="13" r="9" fill="#1EB3DB"/>
+    </Svg>
+  );
+};
+
 export const IcCatIchimlik = ({ color = '#fff', size = 22 }: P) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path d="M5 4h14l-2 14H7L5 4z" stroke={color} strokeWidth="2" strokeLinejoin="round"/>

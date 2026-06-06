@@ -9,7 +9,7 @@ import { useThemeStore, useAuthStore } from '../../store';
 import { api } from '../../api/client';
 import {
   IcChart, IcOrders, IcStore, IcUsers, IcLogout, IcCheck, IcX,
-  IcCoin, IcCrown, IcMotorbike, IcCard, IcPromo,
+  IcCoin, IcCrown, IcMotorbike, IcCard, IcPromo, IcRating, IcProfile,
 } from '../../components/Icons';
 
 const STATUS_COLOR: Record<string, string> = {
@@ -237,7 +237,7 @@ export function AdminScreen({ navigation }: any) {
           <View style={{ flexDirection: 'row', gap: S.lg, marginBottom: S.sm }}>
             <View><Text style={{ fontSize: F.xs, color: T.t4, fontWeight: '700' }}>Buyurtmalar</Text><Text style={{ fontSize: F.md, fontWeight: '900', color: T.t1 }}>{r.orderCount ?? r._count?.orders ?? 0}</Text></View>
             <View><Text style={{ fontSize: F.xs, color: T.t4, fontWeight: '700' }}>Daromad</Text><Text style={{ fontSize: F.md, fontWeight: '900', color: C.gn }}>{fmtPrice(r.totalRevenue ?? 0)}</Text></View>
-            <View><Text style={{ fontSize: F.xs, color: T.t4, fontWeight: '700' }}>Reyting</Text><Text style={{ fontSize: F.md, fontWeight: '900', color: C.gold }}>⭐ {(r.rating ?? 5).toFixed(1)}</Text></View>
+            <View><Text style={{ fontSize: F.xs, color: T.t4, fontWeight: '700' }}>Reyting</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}><IcRating color={C.gold} size={rs(13, 16)} /><Text style={{ fontSize: F.md, fontWeight: '900', color: C.gold }}>{(r.rating ?? 5).toFixed(1)}</Text></View></View>
             <View><Text style={{ fontSize: F.xs, color: T.t4, fontWeight: '700' }}>Komissiya</Text><Text style={{ fontSize: F.md, fontWeight: '900', color: C.amber }}>{Math.round((r.commission ?? 0.1) * 100)}%</Text></View>
           </View>
           {isSuperadmin && (
@@ -291,7 +291,7 @@ export function AdminScreen({ navigation }: any) {
         <View key={u.id} style={[a.card, { backgroundColor: T.card, borderColor: T.bd }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: S.sm, marginBottom: S.sm }}>
             <View style={[a.roleIcon, { backgroundColor: u.role === 'courier' ? C.gnb : u.role === 'restaurant_owner' ? C.ambBg : isDark ? '#1a1a1a' : '#f0f0f0' }]}>
-              <Text style={{ fontSize: rs(16, 20) }}>{u.role === 'courier' ? '🛵' : u.role === 'restaurant_owner' ? '🏪' : '👤'}</Text>
+              {u.role === 'courier' ? <IcMotorbike color={C.gn} size={rs(16, 20)} /> : u.role === 'restaurant_owner' ? <IcStore color={C.amber} size={rs(16, 20)} /> : <IcProfile color={T.t3} size={rs(16, 20)} />}
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[a.cardTitle, { color: T.t1, fontSize: F.md }]}>{u.name ?? 'Noma\'lum'}</Text>

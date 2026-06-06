@@ -1,18 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, TextInput,
-  KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Animated, StyleSheet,
+  KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Animated, StyleSheet, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { C, S, R, F, rs, normalizePhone } from '../../theme';
 import { COIN, REGIONS } from '../../constants';
 import { useAuthStore, useThemeStore } from '../../store';
 import { api } from '../../api/client';
+import {
+  IcGift, IcProfile, IcMotorbike, IcStore, IcBag, IcBuilding, IcUzFlag,
+} from '../../components/Icons';
 
 const ROLES = [
-  { id: 'customer',         icon: '🛍', name: 'Mijoz',          desc: 'Ovqat buyurtma qilish' },
-  { id: 'restaurant_owner', icon: '🏪', name: 'Restoran egasi', desc: 'Menyu va buyurtmalar' },
-  { id: 'courier',          icon: '🛵', name: 'Kuryer',         desc: 'Buyurtmalar yetkazish' },
+  { id: 'customer',         Icon: IcBag,       name: 'Mijoz',          desc: 'Ovqat buyurtma qilish' },
+  { id: 'restaurant_owner', Icon: IcStore,     name: 'Restoran egasi', desc: 'Menyu va buyurtmalar' },
+  { id: 'courier',          Icon: IcMotorbike, name: 'Kuryer',         desc: 'Buyurtmalar yetkazish' },
 ];
 
 // ─── SPLASH ─────────────────────────────────────────────────────────────────
@@ -24,9 +27,10 @@ export function SplashScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: C.p, alignItems: 'center', justifyContent: 'center', padding: S.xl }}>
       <Animated.View style={{ opacity: fade, alignItems: 'center', width: '100%' }}>
-        <View style={{ width: rs(110, 134), height: rs(110, 134), backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: rs(32, 39), alignItems: 'center', justifyContent: 'center', marginBottom: S.lg }}>
-          <Text style={{ fontSize: rs(60, 73) }}>🛵</Text>
-        </View>
+        <Image
+          source={require('../../assets/icon.png')}
+          style={{ width: rs(110, 134), height: rs(110, 134), borderRadius: rs(32, 39), marginBottom: S.lg }}
+        />
         <Text style={{ fontSize: rs(44, 54), fontWeight: '900', color: '#fff', letterSpacing: -1.5, marginBottom: S.sm }}>DarrovGo</Text>
         <Text style={{ fontSize: F.md, color: 'rgba(255,255,255,0.85)', textAlign: 'center', fontWeight: '600', lineHeight: rs(22, 27), marginBottom: rs(44, 54) }}>
           {'Tez, qulay va mazali\novqat yetkazib berish'}
@@ -38,7 +42,7 @@ export function SplashScreen({ navigation }: any) {
           <Text style={{ fontSize: F.lg, fontWeight: '800', color: '#fff' }}>{"Ro'yxatdan o'tish"}</Text>
         </TouchableOpacity>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: S.sm, marginTop: S.lg, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: R.full, paddingVertical: S.sm, paddingHorizontal: S.md }}>
-          <Text style={{ fontSize: rs(15, 18) }}>🎁</Text>
+          <IcGift color="rgba(255,255,255,0.9)" size={rs(15, 18)} />
           <Text style={{ fontSize: F.xs, color: 'rgba(255,255,255,0.9)', fontWeight: '700' }}>{`Ro'yxatdan o'tganda +${COIN.WELCOME} coin sovg'a!`}</Text>
         </View>
         <Text style={{ marginTop: S.xl, fontSize: rs(10, 12), color: 'rgba(255,255,255,0.35)', fontWeight: '600' }}>darrovgo.uz</Text>
@@ -80,7 +84,7 @@ export function LoginScreen({ navigation }: any) {
           <Text style={[ss.sub, { color: T.t3 }]}>Telegram orqali bir martalik kod yuboramiz</Text>
           <Text style={[ss.lbl, { color: T.t3 }]}>TELEFON RAQAM</Text>
           <View style={[ss.row, { backgroundColor: T.bg2, borderColor: ok ? C.gn : err ? C.rd : T.bd }]}>
-            <Text style={{ fontSize: rs(20, 24) }}>🇺🇿</Text>
+            <IcUzFlag size={rs(16, 20)} />
             <Text style={{ fontSize: rs(16, 18), fontWeight: '800', color: T.t2 }}>+998</Text>
             <TextInput
               style={[ss.inp, { color: T.t1 }]}
@@ -207,7 +211,7 @@ export function RegRoleScreen({ navigation }: any) {
         {ROLES.map(r => (
           <TouchableOpacity key={r.id} style={{ flexDirection: 'row', alignItems: 'center', gap: rs(14, 17), backgroundColor: T.bg2, borderWidth: 2.5, borderColor: sel === r.id ? C.p : T.bd, borderRadius: R.lg, padding: rs(16, 20), marginBottom: S.md }} onPress={() => setSel(r.id)} activeOpacity={0.87}>
             <View style={{ width: rs(54, 66), height: rs(54, 66), backgroundColor: sel === r.id ? (isDark ? '#2a1400' : C.plt) : T.bg3, borderRadius: rs(17, 21), alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontSize: rs(27, 33) }}>{r.icon}</Text>
+              <r.Icon color={sel === r.id ? C.p : T.t3} size={rs(27, 33)} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: F.lg, fontWeight: '900', color: T.t1 }}>{r.name}</Text>
@@ -260,12 +264,12 @@ export function RegInfoScreen({ navigation, route }: any) {
           <Text style={[ss.h1, { color: T.t1 }]}>{"Ma'lumotlar"}</Text>
           <Text style={[ss.lbl, { color: T.t3 }]}>ISM VA FAMILIYA</Text>
           <View style={[ss.row, { backgroundColor: T.bg2, borderColor: nameOk ? C.gn : T.bd, marginBottom: S.md }]}>
-            <Text style={{ fontSize: rs(18, 22) }}>👤</Text>
+            <IcProfile color={T.t3} size={rs(18, 22)} />
             <TextInput style={[ss.inp, { color: T.t1 }]} value={name} onChangeText={setName} placeholder="Anvar Salimov" placeholderTextColor={T.t4} autoCapitalize="words" />
           </View>
           <Text style={[ss.lbl, { color: T.t3 }]}>TELEFON RAQAM</Text>
           <View style={[ss.row, { backgroundColor: T.bg2, borderColor: phoneOk ? C.gn : T.bd }]}>
-            <Text style={{ fontSize: rs(20, 24) }}>🇺🇿</Text>
+            <IcUzFlag size={rs(16, 20)} />
             <Text style={{ fontSize: rs(16, 18), fontWeight: '800', color: T.t2 }}>+998</Text>
             <TextInput style={[ss.inp, { color: T.t1 }]} value={phone} onChangeText={t => setPhone(t.replace(/\D/g, '').slice(0, 9))} placeholder="90 000 00 00" placeholderTextColor={T.t4} keyboardType="phone-pad" maxLength={9} />
           </View>
@@ -364,7 +368,7 @@ export function RegRegionScreen({ navigation, route }: any) {
         {REGIONS.map(r => (
           <TouchableOpacity key={r.id} style={{ flexDirection: 'row', alignItems: 'center', gap: rs(12, 15), backgroundColor: T.bg2, borderWidth: 2.5, borderColor: sel === r.id ? C.p : T.bd, borderRadius: R.md, padding: rs(14, 17), marginBottom: S.sm, opacity: r.active ? 1 : 0.45 }} onPress={() => r.active && setSel(r.id)} disabled={!r.active} activeOpacity={0.87}>
             <View style={{ width: rs(44, 54), height: rs(44, 54), backgroundColor: T.bg3, borderRadius: rs(13, 16), alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontSize: rs(22, 27) }}>🏙️</Text>
+              <IcBuilding color={sel === r.id ? C.p : T.t3} size={rs(22, 27)} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: F.lg, fontWeight: '800', color: T.t1 }}>{r.name}</Text>
