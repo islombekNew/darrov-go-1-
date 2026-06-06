@@ -1,7 +1,8 @@
 {
   "expo": {
     "name": "DarrovGo",
-    "slug": "darrovgo",
+    "slug": "darrovgo-4picvpi8xrevjjnpmas42",
+    "owner": "mnrtraxs-organization",
     "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -44,7 +45,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "a0420cf1-733b-4f26-9e7f-ef1ebaaa318f"
+        "projectId": "cd35c75f-f267-43db-a9de-74c0774bd502"
       },
       "geminiKey": "$EXPO_PUBLIC_GEMINI_KEY"
     }
