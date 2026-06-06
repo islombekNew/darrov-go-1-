@@ -4,7 +4,7 @@ import {
   ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { C, S, R, F, rs, fmtPrice } from '../../theme';
+import { C, S, R, F, rs, fmtPrice, fmtDate } from '../../theme';
 import { useThemeStore, useAuthStore } from '../../store';
 import { api } from '../../api/client';
 import {
@@ -276,6 +276,22 @@ export function AdminScreen({ navigation }: any) {
             <View><Text style={{ fontSize: F.xs, color: T.t4, fontWeight: '700' }}>Daromad</Text><Text style={{ fontSize: F.md, fontWeight: '900', color: C.gn }}>{fmtPrice(c.totalEarnings ?? 0)}</Text></View>
             <View><Text style={{ fontSize: F.xs, color: T.t4, fontWeight: '700' }}>Hudud</Text><Text style={{ fontSize: F.sm, fontWeight: '800', color: T.t2 }}>{c.user?.regionName ?? '—'}</Text></View>
           </View>
+          {(c.restaurantName || c.lastLocationAt) && (
+            <View style={{ flexDirection: 'row', gap: S.lg, marginTop: S.sm, borderTopWidth: 1, borderTopColor: T.bd, paddingTop: S.sm }}>
+              {c.restaurantName ? (
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: F.xs, color: T.t4, fontWeight: '700' }}>Restoran</Text>
+                  <Text style={{ fontSize: F.xs, fontWeight: '800', color: C.p }} numberOfLines={1}>{c.restaurantName}</Text>
+                </View>
+              ) : null}
+              {c.lastLocationAt ? (
+                <View>
+                  <Text style={{ fontSize: F.xs, color: T.t4, fontWeight: '700' }}>GPS yangilangan</Text>
+                  <Text style={{ fontSize: F.xs, fontWeight: '700', color: T.t3 }}>{fmtDate(c.lastLocationAt)}</Text>
+                </View>
+              ) : null}
+            </View>
+          )}
         </View>
       ))}
     </ScrollView>

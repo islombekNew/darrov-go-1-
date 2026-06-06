@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, ActivityIndicator, Switch, Modal, RefreshControl,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, ActivityIndicator, Switch, Modal, RefreshControl, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
@@ -47,6 +47,8 @@ export function NotificationsScreen({ navigation }: any) {
       case 'level_up':       return { ic: <IcTrophy color="#9C27B0" size={sz} />, bg: isDark?C.pubDk:C.pub };
       case 'referral':       return { ic: <IcReferral color={C.gn} size={sz} />, bg: isDark?C.gndk:C.gnb };
       case 'promo':          return { ic: <IcGift color={C.gold} size={sz} />, bg: isDark?'#1a1500':C.ambBg };
+      case 'courier_spot_available': return { ic: <IcMotorbike color={C.p} size={sz} />, bg: isDark?'#2a1400':C.plt };
+      case 'courier_left':   return { ic: <IcMotorbike color={C.rd} size={sz} />, bg: isDark?'#2a0000':'#FFEEEE' };
       default:               return { ic: <IcBell color={T.t2} size={sz} />, bg: T.bg3 };
     }
   };
@@ -556,83 +558,193 @@ const rf = StyleSheet.create({
 });
 
 // ════════ KUZATISH (TRACKING) ════════
+// Status → bosqich raqami (0-indexed)
+const STATUS_TO_STEP: Record<string, number> = {
+  pending: 0, accepted: 1, preparing: 1, ready: 2, on_the_way: 2, delivered: 3, cancelled: 0,
+};
+
 export function TrackingScreen({ navigation, route }: any) {
   const { T, isDark } = useThemeStore();
-  const { addCoins, incrementStreak } = useAuthStore();
+  const { addCoins, incrementStreak, token } = useAuthStore();
+  const { activeOrder } = useOrderStore();
   const cart = useCartStore();
-  const fromCart = route.params?.fromCart;
 
+  const fromCart  = route.params?.fromCart;
+  const paramId   = route.params?.orderId as string | undefined;
+  const orderId   = paramId ?? activeOrder?.id;
+
+  const [orderStatus, setOrderStatus] = React.useState<string>(
+    fromCart ? 'pending' : (activeOrder?.status ?? 'pending'),
+  );
+  const [courierInfo, setCourierInfo] = React.useState<{ name: string; phone: string } | null>(null);
+  const [etaMin, setEtaMin] = React.useState<number>(25);
+  const pollRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Coin + streak — faqat bir marta (buyurtma yangi bo'lganda)
   React.useEffect(() => {
     if (fromCart) {
       const earned = cart.earnCoins();
       addCoins(earned);
       incrementStreak();
-      cart.clearCart();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Real vaqt holatini olish
+  React.useEffect(() => {
+    if (!orderId || !token) return;
+
+    const fetch = async () => {
+      try {
+        const orders = await api.get<any[]>('/users/me/orders', token);
+        const order = (orders ?? []).find((o: any) => o.id === orderId);
+        if (!order) return;
+
+        const st = (order.status ?? 'pending').toLowerCase();
+        setOrderStatus(st);
+
+        // Kuryer ma'lumotlari
+        const cu = order.courier?.user ?? order.courierUser ?? null;
+        if (cu?.name) setCourierInfo({ name: cu.name, phone: cu.phone ?? '' });
+
+        // ETA — backenddan yoki masofadan hisoblash
+        if (order.estimatedDeliveryMinutes) setEtaMin(order.estimatedDeliveryMinutes);
+        else if (order.distance) setEtaMin(Math.max(5, Math.round(order.distance * 5 + 3)));
+
+        // Yetkazilgan bo'lsa polling to'xtaydi
+        if (['delivered', 'cancelled'].includes(st)) {
+          if (pollRef.current) clearInterval(pollRef.current);
+        }
+      } catch {}
+    };
+
+    fetch();
+    pollRef.current = setInterval(fetch, 5000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [orderId, token]);
+
+  // Bosqich holatlarini hisoblash
+  const step = STATUS_TO_STEP[orderStatus] ?? 0;
+  const isDone = orderStatus === 'delivered';
+  const isCancelled = orderStatus === 'cancelled';
+
+  const stepState = (i: number) => {
+    if (isDone) return 'done';
+    if (i < step) return 'done';
+    if (i === step) return 'active';
+    return 'idle';
+  };
+
   const STEPS = [
-    { label:'Qabul qilindi',   done:true,  active:false, ic: (c:string) => <IcCheck color={c} size={rs(16,20)} /> },
-    { label:'Tayyorlanmoqda',  done:true,  active:false, ic: (c:string) => <IcRestaurant color={c} size={rs(16,20)} /> },
-    { label:"Yo'lda",          done:false, active:true,  ic: (c:string) => <IcMotorbike color={c} size={rs(16,20)} /> },
-    { label:'Yetkazildi',      done:false, active:false, ic: (c:string) => <IcHouse color={c} size={rs(16,20)} /> },
+    { label: 'Qabul qilindi',  ic: (c: string) => <IcCheck color={c} size={rs(16, 20)} /> },
+    { label: 'Tayyorlanmoqda', ic: (c: string) => <IcRestaurant color={c} size={rs(16, 20)} /> },
+    { label: "Yo'lda",         ic: (c: string) => <IcMotorbike color={c} size={rs(16, 20)} /> },
+    { label: 'Yetkazildi',     ic: (c: string) => <IcHouse color={c} size={rs(16, 20)} /> },
   ];
 
+  const etaText = isDone ? 'Yetkazildi!' : isCancelled ? 'Bekor qilindi' :
+    orderStatus === 'on_the_way' ? `~${etaMin} daqiqa` :
+    orderStatus === 'ready' ? 'Kuryer yo\'lga otlanmoqda' :
+    ['accepted', 'preparing'].includes(orderStatus) ? 'Tayyorlanmoqda...' : 'Qabul qilinmoqda...';
+
+  const etaSub = isDone ? 'Buyurtmangiz yetkazildi!' : isCancelled ? 'Buyurtma bekor qilindi' :
+    orderStatus === 'on_the_way' ? 'Kuryer yo\'lda' :
+    orderStatus === 'ready' ? 'Tayyorlandi, kuryer kutmoqda' :
+    ['accepted', 'preparing'].includes(orderStatus) ? 'Restoran tayyorlayapti' : 'Restoran qabul qilmoqda';
+
+  const etaBg = isDone ? C.gn : isCancelled ? C.rd : C.p;
+
+  const callCourier = () => {
+    if (!courierInfo?.phone) return;
+    const num = courierInfo.phone.startsWith('+') ? courierInfo.phone : `+${courierInfo.phone}`;
+    Linking.openURL(`tel:${num}`).catch(() => Alert.alert('Xato', 'Qo\'ng\'iroq qilib bo\'lmadi'));
+  };
+
   return (
-    <SafeAreaView style={{ flex:1, backgroundColor:T.bg }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: T.bg }} edges={['top']}>
       <Header navigation={navigation} title="Buyurtma kuzatish" T={T} />
-      <ScrollView contentContainerStyle={{ padding:S.lg }}>
-        <View style={[tr.etaCard, { backgroundColor:C.p }]}>
-          <Text style={tr.etaLbl}>Taxminiy yetkazish</Text>
-          <Text style={tr.etaTime}>~25 daqiqa</Text>
-          <Text style={tr.etaSub}>Kuryer yo'lda</Text>
+      <ScrollView contentContainerStyle={{ padding: S.lg }}>
+
+        {/* ETA karta */}
+        <View style={[tr.etaCard, { backgroundColor: etaBg }]}>
+          <Text style={tr.etaLbl}>
+            {isDone ? 'Buyurtma' : isCancelled ? 'Buyurtma' : 'Taxminiy yetkazish'}
+          </Text>
+          <Text style={[tr.etaTime, isDone || isCancelled ? { fontSize: rs(26, 32) } : {}]}>
+            {etaText}
+          </Text>
+          <Text style={tr.etaSub}>{etaSub}</Text>
         </View>
 
-        <View style={[tr.steps, { backgroundColor:T.card, borderColor:T.bd }]}>
-          {STEPS.map((st, i) => (
-            <View key={i} style={tr.step}>
-              <View style={tr.stepLeft}>
-                <View style={[
-                  tr.stepDot,
-                  st.done ? { backgroundColor:C.gn }
-                  : st.active ? { backgroundColor:C.p }
-                  : { backgroundColor:T.bg3, borderWidth:1.5, borderColor:T.bd },
-                ]}>
-                  {st.ic(st.done ? '#fff' : st.active ? '#fff' : T.t3)}
+        {/* Bosqichlar */}
+        {!isCancelled && (
+          <View style={[tr.steps, { backgroundColor: T.card, borderColor: T.bd }]}>
+            {STEPS.map((st, i) => {
+              const state = stepState(i);
+              return (
+                <View key={i} style={tr.step}>
+                  <View style={tr.stepLeft}>
+                    <View style={[
+                      tr.stepDot,
+                      state === 'done'   ? { backgroundColor: C.gn } :
+                      state === 'active' ? { backgroundColor: C.p } :
+                      { backgroundColor: T.bg3, borderWidth: 1.5, borderColor: T.bd },
+                    ]}>
+                      {st.ic(state !== 'idle' ? '#fff' : T.t3)}
+                    </View>
+                    {i < STEPS.length - 1 && (
+                      <View style={[tr.stepLine, { backgroundColor: state === 'done' ? C.gn : T.bg3 }]} />
+                    )}
+                  </View>
+                  <View style={{ flex: 1, paddingBottom: S.lg }}>
+                    <Text style={[tr.stepLbl, { color: state !== 'idle' ? T.t1 : T.t3 }]}>{st.label}</Text>
+                    {state === 'active' && <Text style={[tr.stepActive, { color: C.p }]}>Hozir</Text>}
+                  </View>
                 </View>
-                {i < STEPS.length - 1 && (
-                  <View style={[tr.stepLine, { backgroundColor:st.done?C.gn:T.bg3 }]} />
-                )}
-              </View>
-              <View style={{ flex:1, paddingBottom:S.lg }}>
-                <Text style={[tr.stepLbl, { color:st.done||st.active?T.t1:T.t3 }]}>{st.label}</Text>
-                {st.active && <Text style={[tr.stepActive, { color:C.p }]}>Hozir</Text>}
-              </View>
-            </View>
-          ))}
-        </View>
+              );
+            })}
+          </View>
+        )}
 
-        <View style={[tr.courierCard, { backgroundColor:T.card, borderColor:T.bd }]}>
-          <View style={[tr.courierAv, { backgroundColor:isDark?'#2a1400':C.plt }]}>
-            <IcMotorbike color={C.p} size={rs(26, 32)} />
-          </View>
-          <View style={{ flex:1 }}>
-            <Text style={[tr.courierName, { color:T.t1 }]}>Kuryer yo'lda</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-              <IcOnline color={C.gn} size={rs(12, 15)} />
-              <Text style={[tr.courierMeta, { color:C.gn }]}>Online</Text>
+        {/* Kuryer ma'lumotlari */}
+        {['on_the_way', 'ready', 'delivered'].includes(orderStatus) && (
+          <View style={[tr.courierCard, { backgroundColor: T.card, borderColor: T.bd }]}>
+            <View style={[tr.courierAv, { backgroundColor: isDark ? '#2a1400' : C.plt }]}>
+              <IcMotorbike color={C.p} size={rs(26, 32)} />
             </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[tr.courierName, { color: T.t1 }]}>
+                {courierInfo?.name ?? 'Kuryer'}
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                <IcOnline color={C.gn} size={rs(12, 15)} />
+                <Text style={[tr.courierMeta, { color: C.gn }]}>
+                  {orderStatus === 'delivered' ? 'Yetkazib bo\'ldi' : 'Yo\'lda'}
+                </Text>
+              </View>
+              {courierInfo?.phone ? (
+                <Text style={{ fontSize: F.xs, color: T.t3, fontWeight: '600', marginTop: 2 }}>
+                  +{courierInfo.phone}
+                </Text>
+              ) : null}
+            </View>
+            {orderStatus !== 'delivered' && (
+              <TouchableOpacity
+                style={[tr.callBtn, { backgroundColor: courierInfo?.phone ? C.gn : T.bg3 }]}
+                onPress={callCourier}
+                disabled={!courierInfo?.phone}
+              >
+                <IcPhone color="#fff" size={rs(20, 24)} />
+              </TouchableOpacity>
+            )}
           </View>
-          <TouchableOpacity style={[tr.callBtn, { backgroundColor:C.gn }]} onPress={() => Alert.alert('Qo\'ng\'iroq', 'Tez orada kuryer ma\'lumotlari ko\'rsatiladi')}>
-            <IcPhone color="#fff" size={rs(20, 24)} />
-          </TouchableOpacity>
-        </View>
+        )}
 
         <TouchableOpacity
-          style={[tr.homeBtn, { backgroundColor:T.bg3 }]}
+          style={[tr.homeBtn, { backgroundColor: T.bg3 }]}
           onPress={() => navigation.navigate('MBosh')}
         >
-          <Text style={[tr.homeTxt, { color:T.t2 }]}>Bosh sahifaga qaytish</Text>
+          <Text style={[tr.homeTxt, { color: T.t2 }]}>Bosh sahifaga qaytish</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

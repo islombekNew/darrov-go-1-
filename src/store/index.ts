@@ -78,7 +78,7 @@ export const useAuthStore = create<AuthState>()(
 // ── NOTIFICATIONS ──────────────────────────────
 export interface Notif {
   id: string;
-  type: 'order_accepted'|'order_ready'|'order_delivered'|'coin_earned'|'level_up'|'referral'|'promo';
+  type: 'order_accepted'|'order_ready'|'order_delivered'|'coin_earned'|'level_up'|'referral'|'promo'|'courier_spot_available'|'courier_left';
   title: string; body: string; read: boolean; createdAt: Date;
 }
 interface NotifState {

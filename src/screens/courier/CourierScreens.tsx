@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Switch,
-  ActivityIndicator, RefreshControl,
+  ActivityIndicator, RefreshControl, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Location from 'expo-location';
 import { C, S, R, F, rs, fmtPrice } from '../../theme';
-import { useThemeStore, useAuthStore } from '../../store';
+import { useThemeStore, useAuthStore, useNotifStore } from '../../store';
 import { api } from '../../api/client';
 import {
   IcCheck, IcLogout, IcSettings,
   IcPhone, IcStar, IcMotorbike, IcPin, IcTime,
-  IcChevron, IcMoon, IcSun,
+  IcChevron, IcMoon, IcSun, IcX,
 } from '../../components/Icons';
 
 // ─── Types ────────────────────────────────────────
@@ -135,6 +136,7 @@ const EARN_TABLE = [
 export function CourierHomeScreen({ navigation }: any) {
   const { T, isDark } = useThemeStore();
   const { user, token } = useAuthStore();
+  const { add: addNotif } = useNotifStore();
   const [online, setOnline] = useState(false);
   const [stats, setStats] = useState<CourierStats | null>(null);
   const [profile, setProfile] = useState<CourierProfile | null>(null);
@@ -145,7 +147,9 @@ export function CourierHomeScreen({ navigation }: any) {
   const [accepting, setAccepting] = useState<string | null>(null);
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const [restLoading, setRestLoading] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const locationRef = useRef<Location.LocationSubscription | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -187,6 +191,38 @@ export function CourierHomeScreen({ navigation }: any) {
     if (profile && !profile.restaurantId) fetchRestaurants();
   }, [profile?.restaurantId]);
 
+  // GPS joylashuvni yuborish — online bo'lganda har 5 soniyada
+  useEffect(() => {
+    if (!online || !token) {
+      locationRef.current?.remove();
+      locationRef.current = null;
+      return;
+    }
+    let mounted = true;
+    (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted' || !mounted) return;
+        locationRef.current = await Location.watchPositionAsync(
+          { accuracy: Location.Accuracy.High, timeInterval: 5000, distanceInterval: 15 },
+          async (loc) => {
+            try {
+              await api.patch('/couriers/me/location', {
+                lat: loc.coords.latitude,
+                lng: loc.coords.longitude,
+              }, token);
+            } catch {}
+          },
+        );
+      } catch {}
+    })();
+    return () => {
+      mounted = false;
+      locationRef.current?.remove();
+      locationRef.current = null;
+    };
+  }, [online, token]);
+
   const handleToggleOnline = async () => {
     if (toggling) return;
     setToggling(true);
@@ -198,6 +234,37 @@ export function CourierHomeScreen({ navigation }: any) {
     } finally {
       setToggling(false);
     }
+  };
+
+  const handleLeaveRestaurant = () => {
+    Alert.alert(
+      'Restorandan chiqish',
+      `${profile?.restaurantName ?? 'Restoran'}dan chiqmoqchimisiz?\n\nChiqqaningizda, kutayotgan kuryerlarga bo'sh joy haqida xabar ketadi.`,
+      [
+        { text: 'Bekor', style: 'cancel' },
+        {
+          text: 'Chiqish',
+          style: 'destructive',
+          onPress: async () => {
+            setLeaving(true);
+            try {
+              await api.post('/couriers/me/leave-restaurant', {}, token);
+              addNotif({
+                type: 'courier_left',
+                title: 'Restorandan chiqdingiz',
+                body: `${profile?.restaurantName ?? 'Restoran'}dan muvaffaqiyatli chiqdingiz.`,
+              });
+              setProfile(prev => prev ? { ...prev, restaurantId: null, restaurantName: null } : prev);
+              fetchRestaurants();
+            } catch (e: any) {
+              Alert.alert('Xato', e.message || "Chiqib bo'lmadi, qayta urining");
+            } finally {
+              setLeaving(false);
+            }
+          },
+        },
+      ],
+    );
   };
 
   const handleJoinRestaurant = async (restaurantId: string) => {
@@ -382,6 +449,17 @@ export function CourierHomeScreen({ navigation }: any) {
             <Text style={{ fontSize: F.sm, fontWeight: '700', color: C.gn, flex: 1 }}>
               {profile.restaurantName}
             </Text>
+            <TouchableOpacity
+              onPress={handleLeaveRestaurant}
+              disabled={leaving}
+              style={{ padding: 4 }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              {leaving
+                ? <ActivityIndicator size="small" color={C.rd} />
+                : <IcX color={C.rd} size={rs(16, 20)} />
+              }
+            </TouchableOpacity>
           </View>
         ) : null}
 
