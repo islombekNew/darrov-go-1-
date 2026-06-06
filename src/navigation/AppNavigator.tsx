@@ -52,39 +52,45 @@ type TabIconProps = {
 
 function TabIcon({ focused, isDark, Icon }: TabIconProps) {
   return (
-    <View style={[ts.icon, focused && { backgroundColor: isDark ? '#2a1400' : C.plt }]}>
+    <View style={[ts.icon, focused && {
+      backgroundColor: isDark ? 'rgba(255,107,26,0.25)' : 'rgba(255,255,255,0.22)',
+    }]}>
       <Icon
-        color={focused ? C.p : isDark ? '#777' : '#aaa'}
+        color={focused ? '#fff' : isDark ? 'rgba(255,150,80,0.5)' : 'rgba(255,255,255,0.55)'}
         size={IS_TABLET ? 22 : 19}
       />
     </View>
   );
 }
 
-const tabOpts = (T: any) => ({
+const tabOpts = (T: any, isDark: boolean) => ({
   headerShown: false as const,
   tabBarStyle: {
     height: IS_TABLET ? 82 : 68,
     paddingBottom: IS_TABLET ? 14 : 10,
     paddingTop: IS_TABLET ? 8 : 5,
-    backgroundColor: T.navBg,
-    borderTopColor: T.navBd,
-    borderTopWidth: 1,
+    backgroundColor: isDark ? '#1a0800' : C.p,
+    borderTopWidth: 0,
+    elevation: 12,
+    shadowColor: C.p,
+    shadowOpacity: isDark ? 0 : 0.35,
+    shadowOffset: { width: 0, height: -3 },
+    shadowRadius: 10,
   },
   tabBarLabelStyle: {
     fontSize: IS_TABLET ? 11 : 9.5,
     fontWeight: '800' as const,
     marginTop: -2,
   },
-  tabBarActiveTintColor: C.p,
-  tabBarInactiveTintColor: T.t4,
+  tabBarActiveTintColor: '#fff',
+  tabBarInactiveTintColor: isDark ? 'rgba(255,150,80,0.5)' : 'rgba(255,255,255,0.55)',
 });
 
 // ── MIJOZ TABS ──
 function MijozTabs() {
   const { T, isDark } = useThemeStore();
   return (
-    <Tab.Navigator screenOptions={tabOpts(T)}>
+    <Tab.Navigator screenOptions={tabOpts(T, isDark)}>
       <Tab.Screen name="MBosh" component={CustomerHomeScreen}
         options={{ tabBarLabel: 'Bosh', tabBarIcon: ({ focused }) => <TabIcon focused={focused} isDark={isDark} Icon={IcHome} /> }} />
       <Tab.Screen name="MBuyurtma" component={CustomerOrdersScreen}
@@ -101,7 +107,7 @@ function MijozTabs() {
 function RestoranTabs() {
   const { T, isDark } = useThemeStore();
   return (
-    <Tab.Navigator screenOptions={tabOpts(T)}>
+    <Tab.Navigator screenOptions={tabOpts(T, isDark)}>
       <Tab.Screen name="RBosh" component={RestaurantHomeScreen}
         options={{ tabBarLabel: 'Bosh', tabBarIcon: ({ focused }) => <TabIcon focused={focused} isDark={isDark} Icon={IcStore} /> }} />
       <Tab.Screen name="RBuyurtma" component={RestaurantOrdersScreen}
@@ -120,7 +126,7 @@ function RestoranTabs() {
 function KuryerTabs() {
   const { T, isDark } = useThemeStore();
   return (
-    <Tab.Navigator screenOptions={tabOpts(T)}>
+    <Tab.Navigator screenOptions={tabOpts(T, isDark)}>
       <Tab.Screen name="KBosh" component={CourierHomeScreen}
         options={{ tabBarLabel: 'Bosh', tabBarIcon: ({ focused }) => <TabIcon focused={focused} isDark={isDark} Icon={IcMotorbike} /> }} />
       <Tab.Screen name="KStat" component={CourierStatsScreen}

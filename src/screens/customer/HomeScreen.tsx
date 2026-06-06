@@ -139,13 +139,13 @@ export function CustomerHomeScreen({ navigation }: any) {
         )}
 
         {/* PROMO */}
-        <View style={[s.promo, { backgroundColor: isDark ? '#1a1500' : C.ambBg, borderColor: C.gold }]}>
+        <View style={[s.promo, { backgroundColor: isDark ? '#2a1000' : C.p, borderColor: isDark ? C.p + '44' : 'transparent' }]}>
           <View style={{ flex: 1 }}>
-            <Text style={[s.promoTitle, { color: isDark ? '#fff' : T.t1 }]}>Birinchi buyurtmaga</Text>
-            <Text style={[s.promoSub, { color: T.t3 }]}>Promo: YANGI20 — 20% chegirma</Text>
+            <Text style={[s.promoTitle, { color: '#fff' }]}>Birinchi buyurtmaga</Text>
+            <Text style={[s.promoSub, { color: 'rgba(255,255,255,0.8)' }]}>Promo: YANGI20 — 20% chegirma</Text>
           </View>
-          <View style={[s.promoChip, { backgroundColor: C.gold }]}>
-            <Text style={s.promoPct}>20%</Text>
+          <View style={[s.promoChip, { backgroundColor: 'rgba(255,255,255,0.22)' }]}>
+            <Text style={[s.promoPct, { color: '#fff' }]}>20%</Text>
           </View>
         </View>
 
@@ -271,7 +271,7 @@ const s = StyleSheet.create({
   aoBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   aoEta: { fontSize: rs(20, 24), fontWeight: '900' },
 
-  promo: { marginHorizontal: S.lg, marginTop: S.md, borderWidth: 1.5, borderRadius: R.lg, padding: S.md, flexDirection: 'row', alignItems: 'center' },
+  promo: { marginHorizontal: S.lg, marginTop: S.md, borderWidth: 1, borderRadius: R.lg, padding: rs(14, 18), flexDirection: 'row', alignItems: 'center' },
   promoTitle: { fontSize: F.md, fontWeight: '800' },
   promoSub: { fontSize: F.xs, fontWeight: '600', marginTop: 3 },
   promoChip: { borderRadius: R.md, paddingVertical: rs(9, 11), paddingHorizontal: rs(14, 18) },
