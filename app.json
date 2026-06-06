@@ -16,10 +16,6 @@
       "bundleIdentifier": "uz.darrovgo.app"
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundColor": "#FF6B1A"
-      },
       "package": "uz.darrovgo.app",
       "versionCode": 2,
       "permissions": [
