@@ -6,6 +6,7 @@
     "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -16,6 +17,10 @@
       "bundleIdentifier": "uz.darrovgo.app"
     },
     "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png"
+      },
       "package": "uz.darrovgo.app",
       "versionCode": 2,
       "permissions": [
@@ -43,7 +48,6 @@
       ]
     ],
     "extra": {
-      "geminiKey": "$EXPO_PUBLIC_GEMINI_KEY",
       "eas": {
         "projectId": "f0ca3748-e2d4-44ad-ad02-38d9ce5b04f8"
       }
