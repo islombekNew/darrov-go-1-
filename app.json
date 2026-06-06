@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "DarrovGo",
-    "slug": "darrovgo-4picvpi8xrevjjnpmas42",
+    "slug": "darrovgo-v3",
     "owner": "mnrtraxs-organization",
     "version": "2.0.0",
     "orientation": "portrait",
@@ -27,20 +27,26 @@
       ]
     },
     "plugins": [
-      ["expo-location", {
-        "locationAlwaysAndWhenInUsePermission": "DarrovGo ilovasi yetkazib berish uchun joylashuvingizdan foydalanadi.",
-        "locationWhenInUsePermission": "DarrovGo ilovasi yetkazib berish uchun joylashuvingizdan foydalanadi."
-      }],
-      ["expo-image-picker", {
-        "photosPermission": "DarrovGo ilovasi profil rasmingizni o'rnatish uchun galereyangizdan foydalanadi.",
-        "cameraPermission": "DarrovGo ilovasi profil rasmini olish uchun kameradan foydalanadi."
-      }]
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "DarrovGo ilovasi yetkazib berish uchun joylashuvingizdan foydalanadi.",
+          "locationWhenInUsePermission": "DarrovGo ilovasi yetkazib berish uchun joylashuvingizdan foydalanadi."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "DarrovGo ilovasi profil rasmingizni o'rnatish uchun galereyangizdan foydalanadi.",
+          "cameraPermission": "DarrovGo ilovasi profil rasmini olish uchun kameradan foydalanadi."
+        }
+      ]
     ],
     "extra": {
+      "geminiKey": "$EXPO_PUBLIC_GEMINI_KEY",
       "eas": {
-        "projectId": "cd35c75f-f267-43db-a9de-74c0774bd502"
-      },
-      "geminiKey": "$EXPO_PUBLIC_GEMINI_KEY"
+        "projectId": "f0ca3748-e2d4-44ad-ad02-38d9ce5b04f8"
+      }
     }
   }
 }
