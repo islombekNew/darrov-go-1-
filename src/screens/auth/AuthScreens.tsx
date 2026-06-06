@@ -28,7 +28,7 @@ export function SplashScreen({ navigation }: any) {
     <View style={{ flex: 1, backgroundColor: C.p, alignItems: 'center', justifyContent: 'center', padding: S.xl }}>
       <Animated.View style={{ opacity: fade, alignItems: 'center', width: '100%' }}>
         <Image
-          source={require('../../assets/icon.png')}
+          source={require('../../../assets/icon.png')}
           style={{ width: rs(110, 134), height: rs(110, 134), borderRadius: rs(32, 39), marginBottom: S.lg }}
         />
         <Text style={{ fontSize: rs(44, 54), fontWeight: '900', color: '#fff', letterSpacing: -1.5, marginBottom: S.sm }}>DarrovGo</Text>
