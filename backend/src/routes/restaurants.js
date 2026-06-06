@@ -118,6 +118,23 @@ router.patch('/:id', auth, async (req, res) => {
   }
 });
 
+// GET /api/restaurants/:id/menu  (all items for owner — includes unavailable)
+router.get('/:id/menu', auth, async (req, res) => {
+  try {
+    const r = await prisma.restaurant.findUnique({ where: { id: req.params.id } });
+    if (!r || (r.ownerId !== req.userId && !['ADMIN', 'SUPERADMIN'].includes(req.userRole))) {
+      return res.status(403).json({ error: 'Ruxsat yo\'q' });
+    }
+    const items = await prisma.menuItem.findMany({
+      where: { restaurantId: req.params.id },
+      orderBy: { category: 'asc' },
+    });
+    res.json(items);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /api/restaurants/:id/menu
 router.post('/:id/menu', auth, async (req, res) => {
   try {

@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DARK, LIGHT, Theme } from '../theme';
 import { COIN } from '../constants';
 
@@ -8,11 +10,23 @@ interface ThemeState {
   toggle: () => void;
   setDark: (v: boolean) => void;
 }
-export const useThemeStore = create<ThemeState>((set) => ({
-  isDark: false, T: LIGHT,
-  toggle: () => set(s => ({ isDark: !s.isDark, T: s.isDark ? LIGHT : DARK })),
-  setDark: (v) => set({ isDark: v, T: v ? DARK : LIGHT }),
-}));
+export const useThemeStore = create<ThemeState>()(
+  persist(
+    (set) => ({
+      isDark: false, T: LIGHT,
+      toggle: () => set(s => ({ isDark: !s.isDark, T: s.isDark ? LIGHT : DARK })),
+      setDark: (v) => set({ isDark: v, T: v ? DARK : LIGHT }),
+    }),
+    {
+      name: 'dg-theme',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (s) => ({ isDark: s.isDark }),
+      onRehydrateStorage: () => (state) => {
+        if (state) state.T = state.isDark ? DARK : LIGHT;
+      },
+    }
+  )
+);
 
 // ── USER ───────────────────────────────────────
 export type UserRole = 'customer'|'restaurant_owner'|'courier'|'admin'|'superadmin';
@@ -24,28 +38,42 @@ export interface User {
   avatar?: string; floor?: string; apartment?: string; referralCode?: string;
 }
 interface AuthState {
-  user: User|null; token: string|null;
+  user: User|null; token: string|null; hydrated: boolean;
   setAuth: (u: User, t: string) => void;
   updateUser: (u: Partial<User>) => void;
   addCoins: (n: number) => void;
   incrementStreak: () => void;
   logout: () => void;
+  setHydrated: () => void;
 }
-export const useAuthStore = create<AuthState>((set, get) => ({
-  user: null, token: null,
-  setAuth: (user, token) => set({ user, token }),
-  updateUser: (u) => { const c = get().user; if (c) set({ user: { ...c, ...u } }); },
-  addCoins: (n) => { const c = get().user; if (c) set({ user: { ...c, coins: c.coins + n } }); },
-  incrementStreak: () => {
-    const c = get().user; if (!c) return;
-    const today = new Date().toDateString();
-    if (c.lastOrderDate === today) return;
-    const yest = new Date(); yest.setDate(yest.getDate() - 1);
-    const streak = c.lastOrderDate === yest.toDateString() ? c.streak + 1 : 1;
-    set({ user: { ...c, streak, lastOrderDate: today } });
-  },
-  logout: () => set({ user: null, token: null }),
-}));
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      user: null, token: null, hydrated: false,
+      setAuth: (user, token) => set({ user, token }),
+      updateUser: (u) => { const c = get().user; if (c) set({ user: { ...c, ...u } }); },
+      addCoins: (n) => { const c = get().user; if (c) set({ user: { ...c, coins: c.coins + n } }); },
+      incrementStreak: () => {
+        const c = get().user; if (!c) return;
+        const today = new Date().toDateString();
+        if (c.lastOrderDate === today) return;
+        const yest = new Date(); yest.setDate(yest.getDate() - 1);
+        const streak = c.lastOrderDate === yest.toDateString() ? c.streak + 1 : 1;
+        set({ user: { ...c, streak, lastOrderDate: today } });
+      },
+      logout: () => set({ user: null, token: null }),
+      setHydrated: () => set({ hydrated: true }),
+    }),
+    {
+      name: 'dg-auth',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (s) => ({ user: s.user, token: s.token }),
+      onRehydrateStorage: () => (state) => {
+        if (state) state.hydrated = true;
+      },
+    }
+  )
+);
 
 // ── NOTIFICATIONS ──────────────────────────────
 export interface Notif {
@@ -85,24 +113,33 @@ interface CartState {
   clearCart: () => void;
   subtotal: () => number; total: () => number; count: () => number; earnCoins: () => number;
 }
-export const useCartStore = create<CartState>((set, get) => ({
-  items:[], restId:null, restName:null, deliveryFee:9000,
-  addItem: (newItem, restId, restName) => {
-    const { items, restId:cur } = get();
-    if (cur && cur !== restId) return 'conflict';
-    const ex = items.find(i => i.menuItemId === newItem.menuItemId);
-    if (ex) set({ items: items.map(i => i.menuItemId===newItem.menuItemId ? {...i,quantity:i.quantity+1} : i) });
-    else set({ items:[...items,{...newItem,quantity:1}], restId, restName });
-    return 'added';
-  },
-  removeItem: (id) => { const f=get().items.filter(i=>i.menuItemId!==id); set({items:f,restId:f.length?get().restId:null,restName:f.length?get().restName:null}); },
-  updateQty: (id,qty) => { if(qty<=0){get().removeItem(id);return;} set({items:get().items.map(i=>i.menuItemId===id?{...i,quantity:qty}:i)}); },
-  clearCart: () => set({items:[],restId:null,restName:null}),
-  subtotal: () => get().items.reduce((s,i)=>s+i.price*i.quantity,0),
-  total: () => get().subtotal()+get().deliveryFee,
-  count: () => get().items.reduce((s,i)=>s+i.quantity,0),
-  earnCoins: () => get().subtotal()>=COIN.ORDER_THRESHOLD ? COIN.ORDER_HIGH : COIN.ORDER_LOW,
-}));
+export const useCartStore = create<CartState>()(
+  persist(
+    (set, get) => ({
+      items:[], restId:null, restName:null, deliveryFee:9000,
+      addItem: (newItem, restId, restName) => {
+        const { items, restId:cur } = get();
+        if (cur && cur !== restId) return 'conflict';
+        const ex = items.find(i => i.menuItemId === newItem.menuItemId);
+        if (ex) set({ items: items.map(i => i.menuItemId===newItem.menuItemId ? {...i,quantity:i.quantity+1} : i) });
+        else set({ items:[...items,{...newItem,quantity:1}], restId, restName });
+        return 'added';
+      },
+      removeItem: (id) => { const f=get().items.filter(i=>i.menuItemId!==id); set({items:f,restId:f.length?get().restId:null,restName:f.length?get().restName:null}); },
+      updateQty: (id,qty) => { if(qty<=0){get().removeItem(id);return;} set({items:get().items.map(i=>i.menuItemId===id?{...i,quantity:qty}:i)}); },
+      clearCart: () => set({items:[],restId:null,restName:null}),
+      subtotal: () => get().items.reduce((s,i)=>s+i.price*i.quantity,0),
+      total: () => get().subtotal()+get().deliveryFee,
+      count: () => get().items.reduce((s,i)=>s+i.quantity,0),
+      earnCoins: () => get().subtotal()>=COIN.ORDER_THRESHOLD ? COIN.ORDER_HIGH : COIN.ORDER_LOW,
+    }),
+    {
+      name: 'dg-cart',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (s) => ({ items: s.items, restId: s.restId, restName: s.restName }),
+    }
+  )
+);
 
 // ── ORDERS ─────────────────────────────────────
 export type OrderStatus = 'pending'|'accepted'|'preparing'|'ready'|'on_the_way'|'delivered'|'cancelled';
@@ -116,16 +153,25 @@ interface OrderState {
   setActive:(o:Order)=>void; clearActive:()=>void; addOrder:(o:Order)=>void;
   updateStatus:(id:string,s:OrderStatus)=>void;
 }
-export const useOrderStore = create<OrderState>((set, get) => ({
-  activeOrder:null, myOrders:[],
-  setActive:(o)=>set({activeOrder:o}),
-  clearActive:()=>set({activeOrder:null}),
-  addOrder:(o)=>set({myOrders:[o,...get().myOrders]}),
-  updateStatus:(id,status)=>set({
-    myOrders:get().myOrders.map(o=>o.id===id?{...o,status}:o),
-    activeOrder:get().activeOrder?.id===id?{...get().activeOrder!,status}:get().activeOrder,
-  }),
-}));
+export const useOrderStore = create<OrderState>()(
+  persist(
+    (set, get) => ({
+      activeOrder:null, myOrders:[],
+      setActive:(o)=>set({activeOrder:o}),
+      clearActive:()=>set({activeOrder:null}),
+      addOrder:(o)=>set({myOrders:[o,...get().myOrders]}),
+      updateStatus:(id,status)=>set({
+        myOrders:get().myOrders.map(o=>o.id===id?{...o,status}:o),
+        activeOrder:get().activeOrder?.id===id?{...get().activeOrder!,status}:get().activeOrder,
+      }),
+    }),
+    {
+      name: 'dg-orders',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (s) => ({ activeOrder: s.activeOrder, myOrders: s.myOrders.slice(0,20) }),
+    }
+  )
+);
 
 // ── RESTAURANT ORDERS ──────────────────────────
 export interface RestOrder {
