@@ -95,6 +95,7 @@ model Restaurant {
   region       Region      @relation(fields: [regionId], references: [id])
   menuItems    MenuItem[]
   orders       Order[]
+  couriers     Courier[]
 }
 
 model MenuItem {
@@ -113,17 +114,19 @@ model MenuItem {
 }
 
 model Courier {
-  id         String   @id @default(cuid())
-  userId     String   @unique
-  vehicle    String   @default("Mototsikl")
-  online     Boolean  @default(false)
-  rating     Float    @default(5.0)
-  ratingCount Int     @default(0)
-  totalDeliveries Int @default(0)
-  createdAt  DateTime @default(now())
+  id              String      @id @default(cuid())
+  userId          String      @unique
+  restaurantId    String?
+  vehicle         String      @default("Mototsikl")
+  online          Boolean     @default(false)
+  rating          Float       @default(5.0)
+  ratingCount     Int         @default(0)
+  totalDeliveries Int         @default(0)
+  createdAt       DateTime    @default(now())
 
-  user       User     @relation(fields: [userId], references: [id])
-  deliveries Order[]
+  user            User        @relation(fields: [userId], references: [id])
+  restaurant      Restaurant? @relation(fields: [restaurantId], references: [id])
+  deliveries      Order[]
 }
 
 model PaymentCard {

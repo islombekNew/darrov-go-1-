@@ -21,7 +21,18 @@ interface CourierProfile {
   ratingCount: number;
   totalDeliveries: number;
   vehicle: string;
+  restaurantId: string | null;
+  restaurantName: string | null;
   user: { name: string; phone: string; avatar?: string };
+}
+
+interface RestaurantItem {
+  id: string;
+  name: string;
+  address: string;
+  regionName: string;
+  courierCount: number;
+  isFull: boolean;
 }
 
 interface AvailableOrder {
@@ -113,31 +124,56 @@ const buildWeekChart = (deliveries: Delivery[]) => {
   });
 };
 
+const EARN_TABLE = [
+  { label: '0–1 km', fee: 5000, earn: 3500 },
+  { label: '1–2 km', fee: 6500, earn: 4550 },
+  { label: '2–3 km', fee: 7500, earn: 5250 },
+  { label: '3–5 km', fee: 9000, earn: 6300 },
+];
+
 // ════════ BOSH SAHIFA ════════
 export function CourierHomeScreen({ navigation }: any) {
   const { T, isDark } = useThemeStore();
   const { user, token } = useAuthStore();
   const [online, setOnline] = useState(false);
   const [stats, setStats] = useState<CourierStats | null>(null);
+  const [profile, setProfile] = useState<CourierProfile | null>(null);
   const [orders, setOrders] = useState<AvailableOrder[]>([]);
+  const [restaurants, setRestaurants] = useState<RestaurantItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
   const [accepting, setAccepting] = useState<string | null>(null);
+  const [joiningId, setJoiningId] = useState<string | null>(null);
+  const [restLoading, setRestLoading] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
-      const [statsData, ordersData] = await Promise.all([
+      const [statsData, ordersData, profileData] = await Promise.all([
         api.get<CourierStats>('/couriers/me/stats', token),
         api.get<AvailableOrder[]>('/orders/available/courier', token),
+        api.get<CourierProfile>('/couriers/me', token),
       ]);
       setStats(statsData);
       setOnline(statsData.online);
       setOrders(ordersData);
+      setProfile(profileData);
     } catch {
       // silent fail on poll
     } finally {
       setLoading(false);
+    }
+  }, [token]);
+
+  const fetchRestaurants = useCallback(async () => {
+    setRestLoading(true);
+    try {
+      const data = await api.get<RestaurantItem[]>('/couriers/restaurants', token);
+      setRestaurants(data);
+    } catch (e: any) {
+      Alert.alert('Xato', e.message);
+    } finally {
+      setRestLoading(false);
     }
   }, [token]);
 
@@ -146,6 +182,10 @@ export function CourierHomeScreen({ navigation }: any) {
     pollRef.current = setInterval(fetchData, 15000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [fetchData]);
+
+  useEffect(() => {
+    if (profile && !profile.restaurantId) fetchRestaurants();
+  }, [profile?.restaurantId]);
 
   const handleToggleOnline = async () => {
     if (toggling) return;
@@ -157,6 +197,21 @@ export function CourierHomeScreen({ navigation }: any) {
       Alert.alert('Xato', e.message);
     } finally {
       setToggling(false);
+    }
+  };
+
+  const handleJoinRestaurant = async (restaurantId: string) => {
+    setJoiningId(restaurantId);
+    try {
+      const res = await api.post<{ ok: boolean; restaurantName: string }>(
+        '/couriers/me/join-restaurant', { restaurantId }, token,
+      );
+      setProfile(prev => prev ? { ...prev, restaurantId, restaurantName: res.restaurantName } : prev);
+      Alert.alert("Qo'shildingiz!", `Siz ${res.restaurantName} restoraniga qo'shildingiz.`);
+    } catch (e: any) {
+      Alert.alert('Xato', e.message);
+    } finally {
+      setJoiningId(null);
     }
   };
 
@@ -182,6 +237,78 @@ export function CourierHomeScreen({ navigation }: any) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: T.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
         <ActivityIndicator color={C.p} size="large" />
+      </SafeAreaView>
+    );
+  }
+
+  // Restoran tanlanmagan — tanlash ekrani
+  if (!profile?.restaurantId) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: T.bg }} edges={['top']}>
+        <View style={[k.hdr, { backgroundColor: T.hdrBg, borderBottomColor: T.bd }]}>
+          <View style={{ flex: 1 }}>
+            <Text style={[k.name, { color: T.t1 }]}>{user?.name || 'Kuryer'}</Text>
+            <Text style={{ fontSize: F.xs, color: C.amber, fontWeight: '700', marginTop: 3 }}>
+              Restoran tanlanmagan
+            </Text>
+          </View>
+        </View>
+        <ScrollView contentContainerStyle={{ padding: S.lg }}>
+          <View style={[k.earnCard, { backgroundColor: isDark ? '#2a1000' : C.plt, marginBottom: S.md }]}>
+            <Text style={{ fontSize: F.lg, fontWeight: '900', color: C.pdk, marginBottom: S.xs }}>
+              Ishlamoqchi bo'lgan restoranni tanlang
+            </Text>
+            <Text style={{ fontSize: F.sm, color: T.t3, fontWeight: '600' }}>
+              Har restoranda max 8 ta kuryer ishlaydi
+            </Text>
+          </View>
+
+          {restLoading ? (
+            <ActivityIndicator color={C.p} style={{ marginTop: S.xl }} />
+          ) : restaurants.length === 0 ? (
+            <View style={{ alignItems: 'center', paddingVertical: rs(40, 56) }}>
+              <IcMotorbike color={T.t4} size={rs(48, 60)} />
+              <Text style={{ fontSize: F.lg, fontWeight: '800', color: T.t2, marginTop: S.md, textAlign: 'center' }}>
+                Hozircha hech qanday restoran yo'q
+              </Text>
+              <Text style={{ fontSize: F.sm, color: T.t4, marginTop: S.sm, textAlign: 'center' }}>
+                Administrator restoran qo'shgandan keyin bu yerda ko'rinadi
+              </Text>
+            </View>
+          ) : (
+            restaurants.map(r => (
+              <View key={r.id} style={[k.restCard, { backgroundColor: T.card, borderColor: r.isFull ? T.bd : T.bd, opacity: r.isFull ? 0.6 : 1 }]}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: F.md, fontWeight: '900', color: T.t1 }}>{r.name}</Text>
+                  <Text style={{ fontSize: F.xs, color: T.t3, fontWeight: '600', marginTop: 2 }}>{r.address}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: S.sm, marginTop: S.xs }}>
+                    <View style={[k.restBadge, { backgroundColor: r.isFull ? C.rdb : (isDark ? '#1a2a1a' : '#e8f5e9') }]}>
+                      <Text style={{ fontSize: rs(10, 12), fontWeight: '800', color: r.isFull ? C.rd : C.gn }}>
+                        {r.courierCount}/8 {r.isFull ? 'Band' : 'Bo\'sh'}
+                      </Text>
+                    </View>
+                    {r.regionName ? (
+                      <Text style={{ fontSize: F.xs, color: T.t4, fontWeight: '600' }}>{r.regionName}</Text>
+                    ) : null}
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={[k.joinBtn, { backgroundColor: r.isFull ? T.bg3 : C.p }]}
+                  onPress={() => !r.isFull && handleJoinRestaurant(r.id)}
+                  disabled={r.isFull || joiningId === r.id}
+                  activeOpacity={0.87}
+                >
+                  {joiningId === r.id
+                    ? <ActivityIndicator size="small" color="#fff" />
+                    : <Text style={{ fontSize: F.sm, fontWeight: '800', color: r.isFull ? T.t4 : '#fff' }}>
+                        {r.isFull ? 'Band' : "Qo'shilish"}
+                      </Text>
+                  }
+                </TouchableOpacity>
+              </View>
+            ))
+          )}
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -230,6 +357,33 @@ export function CourierHomeScreen({ navigation }: any) {
             ))}
           </View>
         </View>
+
+        {/* Daromad jadvali */}
+        <View style={[k.tableBox, { backgroundColor: T.card, borderColor: T.bd }]}>
+          <Text style={[k.tableTitle, { color: T.t1 }]}>Masofa bo'yicha haq</Text>
+          <View style={[k.tableHdr, { borderBottomColor: T.bd }]}>
+            <Text style={[k.tableHdrTxt, { color: T.t3, flex: 1 }]}>Masofa</Text>
+            <Text style={[k.tableHdrTxt, { color: T.t3, width: 80, textAlign: 'center' }]}>Narx</Text>
+            <Text style={[k.tableHdrTxt, { color: C.gn, width: 80, textAlign: 'right' }]}>Sizga</Text>
+          </View>
+          {EARN_TABLE.map((row, i) => (
+            <View key={i} style={[k.tableRow, i < EARN_TABLE.length - 1 && { borderBottomWidth: 0.5, borderBottomColor: T.bd }]}>
+              <Text style={[k.tableCell, { color: T.t2, flex: 1 }]}>{row.label}</Text>
+              <Text style={[k.tableCell, { color: T.t3, width: 80, textAlign: 'center' }]}>{fmtPrice(row.fee)}</Text>
+              <Text style={[k.tableCell, { color: C.gn, width: 80, textAlign: 'right', fontWeight: '800' }]}>+{fmtPrice(row.earn)}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Restoran */}
+        {profile?.restaurantName ? (
+          <View style={[k.restInfoCard, { backgroundColor: isDark ? '#1a2a1a' : '#f0faf0', borderColor: C.gn }]}>
+            <IcMotorbike color={C.gn} size={rs(18, 22)} />
+            <Text style={{ fontSize: F.sm, fontWeight: '700', color: C.gn, flex: 1 }}>
+              {profile.restaurantName}
+            </Text>
+          </View>
+        ) : null}
 
         {/* Yangi buyurtma yoki bo'sh holat */}
         {online && currentOrder ? (() => {
@@ -342,6 +496,16 @@ const k = StyleSheet.create({
   btn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: S.xs, borderRadius: R.md, paddingVertical: rs(11, 14) },
   btnTxt: { fontSize: F.md, fontWeight: '800', color: '#fff' },
   emptyIcon: { width: rs(80, 96), height: rs(80, 96), borderRadius: rs(40, 48), alignItems: 'center', justifyContent: 'center' },
+  tableBox: { borderWidth: 1, borderRadius: R.lg, marginBottom: S.md, overflow: 'hidden' },
+  tableTitle: { fontSize: F.md, fontWeight: '800', padding: S.md, paddingBottom: S.sm },
+  tableHdr: { flexDirection: 'row', paddingHorizontal: S.md, paddingBottom: S.sm, borderBottomWidth: 1 },
+  tableHdrTxt: { fontSize: F.xs, fontWeight: '700', textTransform: 'uppercase' },
+  tableRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: S.md, paddingVertical: rs(8, 10) },
+  tableCell: { fontSize: F.sm, fontWeight: '700' },
+  restCard: { flexDirection: 'row', alignItems: 'center', gap: S.md, borderWidth: 1, borderRadius: R.lg, padding: S.md, marginBottom: S.sm },
+  restBadge: { borderRadius: R.full, paddingVertical: 3, paddingHorizontal: S.sm },
+  joinBtn: { borderRadius: R.md, paddingVertical: rs(8, 10), paddingHorizontal: S.md, alignItems: 'center', minWidth: rs(80, 96) },
+  restInfoCard: { flexDirection: 'row', alignItems: 'center', gap: S.sm, borderWidth: 1, borderRadius: R.md, padding: S.sm, marginBottom: S.md },
 });
 
 // ════════ TARIX ════════
@@ -638,7 +802,7 @@ export function CourierProfileScreen({ navigation }: any) {
     ],
     [
       { Icon: IcMotorbike, label: 'Transport', val: courierData?.vehicle || 'Mototsikl', bg: C.amber },
-      { Icon: IcSettings, label: 'Sozlamalar', val: '', bg: '#7C4DFF' },
+      { Icon: IcStar, label: 'Restoran', val: courierData?.restaurantName || 'Tanlanmagan', bg: C.gn },
     ],
   ];
 

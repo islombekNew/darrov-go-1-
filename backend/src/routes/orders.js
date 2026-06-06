@@ -5,10 +5,11 @@ const { notifyRestaurant } = require('../telegram');
 const prisma = new PrismaClient();
 
 const calcDeliveryFee = (km) => {
-  if (km <= 0) return 6000;
-  const base = 6000;
-  const extra = Math.max(0, Math.ceil(km) - 1) * 3000;
-  return base + extra;
+  if (km <= 1) return 5000;
+  if (km <= 2) return 6500;
+  if (km <= 3) return 7500;
+  if (km <= 5) return 9000;
+  return 9000 + Math.ceil(km - 5) * 2000;
 };
 const calcCourierEarning = (km) => Math.round(calcDeliveryFee(km) * 0.7);
 
@@ -165,8 +166,14 @@ router.patch('/:id/status', auth, async (req, res) => {
 // GET /api/orders/available/courier  — pending orders for couriers to pick up
 router.get('/available/courier', auth, async (req, res) => {
   try {
+    const courier = await prisma.courier.findUnique({ where: { userId: req.userId } });
+    if (!courier) return res.status(404).json({ error: 'Kuryer topilmadi' });
+
+    const where = { status: 'READY', courierId: null };
+    if (courier.restaurantId) where.restaurantId = courier.restaurantId;
+
     const orders = await prisma.order.findMany({
-      where: { status: 'READY', courierId: null },
+      where,
       include: {
         restaurant: { select: { name: true, address: true } },
         customer: { select: { name: true } },

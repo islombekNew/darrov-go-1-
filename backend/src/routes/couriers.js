@@ -3,12 +3,38 @@ const { PrismaClient } = require('@prisma/client');
 const auth = require('../middleware/auth');
 const prisma = new PrismaClient();
 
+// GET /api/couriers/restaurants  — restoran ro'yxati (kuryer uchun)
+router.get('/restaurants', auth, async (req, res) => {
+  try {
+    const restaurants = await prisma.restaurant.findMany({
+      include: {
+        _count: { select: { couriers: true } },
+        region: { select: { name: true } },
+      },
+      orderBy: { name: 'asc' },
+    });
+    res.json(restaurants.map(r => ({
+      id: r.id,
+      name: r.name,
+      address: r.address,
+      regionName: r.region?.name,
+      courierCount: r._count.couriers,
+      isFull: r._count.couriers >= 8,
+    })));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/couriers/me
 router.get('/me', auth, async (req, res) => {
   try {
     const courier = await prisma.courier.findUnique({
       where: { userId: req.userId },
-      include: { user: { select: { name: true, phone: true, avatar: true } } },
+      include: {
+        user: { select: { name: true, phone: true, avatar: true } },
+        restaurant: { select: { name: true } },
+      },
     });
     if (!courier) return res.status(404).json({ error: 'Kuryer topilmadi' });
     res.json(mapCourier(courier));
@@ -121,6 +147,39 @@ router.post('/me/accept/:orderId', auth, async (req, res) => {
   }
 });
 
+// POST /api/couriers/me/join-restaurant  — restoranga qo'shilish (limit: 8)
+router.post('/me/join-restaurant', auth, async (req, res) => {
+  try {
+    const { restaurantId } = req.body;
+    if (!restaurantId) return res.status(400).json({ error: 'restaurantId kerak' });
+
+    const courier = await prisma.courier.findUnique({ where: { userId: req.userId } });
+    if (!courier) return res.status(404).json({ error: 'Kuryer topilmadi' });
+
+    const count = await prisma.courier.count({ where: { restaurantId } });
+    if (count >= 8) return res.status(400).json({ error: 'Bu restoranda joylar band (8/8). Boshqa restoran tanlang.' });
+
+    const updated = await prisma.courier.update({
+      where: { userId: req.userId },
+      data: { restaurantId },
+      include: { restaurant: { select: { name: true } } },
+    });
+    res.json({ ok: true, restaurantId, restaurantName: updated.restaurant?.name });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/couriers/me/leave-restaurant  — restorandan chiqish
+router.delete('/me/leave-restaurant', auth, async (req, res) => {
+  try {
+    await prisma.courier.update({ where: { userId: req.userId }, data: { restaurantId: null } });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /api/couriers/rate/:courierId  — rate courier after delivery
 router.post('/rate/:courierId', auth, async (req, res) => {
   try {
@@ -150,6 +209,8 @@ router.post('/rate/:courierId', auth, async (req, res) => {
 function mapCourier(c) {
   return {
     id: c.id, userId: c.userId,
+    restaurantId: c.restaurantId ?? null,
+    restaurantName: c.restaurant?.name ?? null,
     vehicle: c.vehicle, online: c.online,
     rating: c.rating, ratingCount: c.ratingCount,
     totalDeliveries: c.totalDeliveries,

@@ -194,6 +194,71 @@ router.delete('/:id/menu/:itemId', auth, async (req, res) => {
   }
 });
 
+// GET /api/restaurants/:id/couriers  — restoran kuryerlari
+router.get('/:id/couriers', auth, async (req, res) => {
+  try {
+    const r = await prisma.restaurant.findUnique({ where: { id: req.params.id } });
+    if (!r || (r.ownerId !== req.userId && !['ADMIN', 'SUPERADMIN'].includes(req.userRole))) {
+      return res.status(403).json({ error: 'Ruxsat yo\'q' });
+    }
+    const couriers = await prisma.courier.findMany({
+      where: { restaurantId: req.params.id },
+      include: { user: { select: { name: true, phone: true } } },
+    });
+    res.json(couriers.map(c => ({
+      id: c.id,
+      name: c.user?.name,
+      phone: c.user?.phone,
+      online: c.online,
+      rating: c.rating,
+      totalDeliveries: c.totalDeliveries,
+    })));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/restaurants/:id/couriers  — kuryer qo'shish (telefon raqam orqali)
+router.post('/:id/couriers', auth, async (req, res) => {
+  try {
+    const r = await prisma.restaurant.findUnique({ where: { id: req.params.id } });
+    if (!r || (r.ownerId !== req.userId && !['ADMIN', 'SUPERADMIN'].includes(req.userRole))) {
+      return res.status(403).json({ error: 'Ruxsat yo\'q' });
+    }
+    const count = await prisma.courier.count({ where: { restaurantId: req.params.id } });
+    if (count >= 8) return res.status(400).json({ error: 'Joylar band (8/8)' });
+
+    const { phone } = req.body;
+    const user = await prisma.user.findUnique({ where: { phone } });
+    if (!user) return res.status(404).json({ error: 'Foydalanuvchi topilmadi' });
+
+    let courier = await prisma.courier.findUnique({ where: { userId: user.id } });
+    if (!courier) {
+      await prisma.user.update({ where: { id: user.id }, data: { role: 'COURIER' } });
+      courier = await prisma.courier.create({ data: { userId: user.id, restaurantId: req.params.id } });
+    } else {
+      courier = await prisma.courier.update({ where: { id: courier.id }, data: { restaurantId: req.params.id } });
+    }
+    res.json({ ok: true, courierId: courier.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/restaurants/:id/couriers/:courierId  — kuryerni olib tashlash
+router.delete('/:id/couriers/:courierId', auth, async (req, res) => {
+  try {
+    const r = await prisma.restaurant.findUnique({ where: { id: req.params.id } });
+    if (!r || (r.ownerId !== req.userId && !['ADMIN', 'SUPERADMIN'].includes(req.userRole))) {
+      return res.status(403).json({ error: 'Ruxsat yo\'q' });
+    }
+    await prisma.courier.update({ where: { id: req.params.courierId }, data: { restaurantId: null } });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/restaurants/stats/my  (for restaurant owner dashboard)
 router.get('/stats/my', auth, async (req, res) => {
   try {

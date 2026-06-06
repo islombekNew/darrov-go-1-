@@ -116,7 +116,7 @@ interface CartState {
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
-      items:[], restId:null, restName:null, deliveryFee:9000,
+      items:[], restId:null, restName:null, deliveryFee:5000,
       addItem: (newItem, restId, restName) => {
         const { items, restId:cur } = get();
         if (cur && cur !== restId) return 'conflict';

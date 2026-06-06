@@ -864,6 +864,8 @@ const stt = StyleSheet.create({
 });
 
 // ════════ PROFIL ════════
+interface CourierRow { id: string; name: string; phone: string; online: boolean; rating: number; totalDeliveries: number; }
+
 export function RestaurantProfileScreen({ navigation }: any) {
   const { T, isDark, toggle } = useThemeStore();
   const { user, logout, token } = useAuthStore();
@@ -871,10 +873,20 @@ export function RestaurantProfileScreen({ navigation }: any) {
   const [stats, setStats] = useState<RestStats | null>(null);
   const [isOpen, setIsOpen] = useState(true);
   const [toggling, setToggling] = useState(false);
+  const [couriers, setCouriers] = useState<CourierRow[]>([]);
+  const [addPhone, setAddPhone] = useState('');
+  const [addingCourier, setAddingCourier] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     api.get<{ restaurant: RestaurantInfo; stats: RestStats }>('/restaurants/stats/my', token)
-      .then(d => { setRestaurant(d.restaurant); setStats(d.stats); setIsOpen(d.restaurant.isOpen); })
+      .then(d => {
+        setRestaurant(d.restaurant);
+        setStats(d.stats);
+        setIsOpen(d.restaurant.isOpen);
+        return api.get<CourierRow[]>(`/restaurants/${d.restaurant.id}/couriers`, token);
+      })
+      .then(setCouriers)
       .catch(() => {});
   }, []);
 
@@ -895,6 +907,38 @@ export function RestaurantProfileScreen({ navigation }: any) {
     Alert.alert('Chiqish', 'Tizimdan chiqmoqchimisiz?', [
       { text: 'Bekor', style: 'cancel' },
       { text: 'Chiqish', style: 'destructive', onPress: logout },
+    ]);
+  };
+
+  const handleAddCourier = async () => {
+    if (addPhone.length < 9 || !restaurant) return;
+    setAddingCourier(true);
+    try {
+      await api.post(`/restaurants/${restaurant.id}/couriers`, { phone: '998' + addPhone }, token);
+      const updated = await api.get<CourierRow[]>(`/restaurants/${restaurant.id}/couriers`, token);
+      setCouriers(updated);
+      setAddPhone('');
+      setShowAddModal(false);
+      Alert.alert('Qo\'shildi!', 'Kuryer restoranga biriktirildi.');
+    } catch (e: any) {
+      Alert.alert('Xato', e.message);
+    } finally {
+      setAddingCourier(false);
+    }
+  };
+
+  const handleRemoveCourier = (courierId: string) => {
+    if (!restaurant) return;
+    Alert.alert("O'chirish", "Bu kuryerni olib tashlamoqchimisiz?", [
+      { text: 'Bekor', style: 'cancel' },
+      { text: "O'chirish", style: 'destructive', onPress: async () => {
+        try {
+          await api.delete(`/restaurants/${restaurant.id}/couriers/${courierId}`, token);
+          setCouriers(prev => prev.filter(c => c.id !== courierId));
+        } catch (e: any) {
+          Alert.alert('Xato', e.message);
+        }
+      }},
     ]);
   };
 
@@ -978,7 +1022,75 @@ export function RestaurantProfileScreen({ navigation }: any) {
           </View>
         </View>
 
-        <TouchableOpacity style={[pr.logoutBtn, { backgroundColor: isDark ? C.rddk : C.rdb, borderColor: C.rd }]} onPress={handleLogout}>
+        {/* Kuryerlar bo'limi */}
+        <View style={{ marginHorizontal: S.lg, marginTop: S.md }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: S.sm }}>
+            <Text style={{ fontSize: F.md, fontWeight: '800', color: T.t1 }}>
+              Kuryerlar ({couriers.length}/8)
+            </Text>
+            {couriers.length < 8 && (
+              <TouchableOpacity
+                style={{ backgroundColor: C.p, borderRadius: R.md, paddingVertical: rs(5, 7), paddingHorizontal: S.md }}
+                onPress={() => setShowAddModal(true)}
+                activeOpacity={0.87}
+              >
+                <Text style={{ fontSize: F.xs, fontWeight: '800', color: '#fff' }}>+ Qo'shish</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {couriers.length === 0 ? (
+            <View style={[pr.emptyBox, { backgroundColor: T.bg2, borderColor: T.bd }]}>
+              <Text style={{ fontSize: F.sm, color: T.t4, fontWeight: '600', textAlign: 'center' }}>
+                Hali kuryer yo'q. Telefon raqami orqali qo'shing.
+              </Text>
+            </View>
+          ) : (
+            couriers.map((c, i) => (
+              <View key={c.id} style={[pr.courierRow, { backgroundColor: T.bg2, borderColor: T.bd }]}>
+                <View style={[pr.courierDot, { backgroundColor: c.online ? C.gn : T.t4 }]} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: F.sm, fontWeight: '800', color: T.t1 }}>{c.name}</Text>
+                  <Text style={{ fontSize: F.xs, color: T.t3, fontWeight: '600' }}>+{c.phone} · {c.totalDeliveries} yetkazish</Text>
+                </View>
+                <TouchableOpacity onPress={() => handleRemoveCourier(c.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <IcX color={C.rd} size={rs(16, 20)} />
+                </TouchableOpacity>
+              </View>
+            ))
+          )}
+        </View>
+
+        {/* Kuryer qo'shish modal */}
+        <Modal visible={showAddModal} transparent animationType="slide" onRequestClose={() => setShowAddModal(false)}>
+          <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <View style={[pr.modal, { backgroundColor: T.bg }]}>
+              <Text style={{ fontSize: F.lg, fontWeight: '900', color: T.t1, marginBottom: S.md }}>Kuryer qo'shish</Text>
+              <Text style={{ fontSize: F.sm, color: T.t3, fontWeight: '600', marginBottom: S.sm }}>Kuryer telefon raqami</Text>
+              <View style={[pr.phoneRow, { backgroundColor: T.bg2, borderColor: T.bd }]}>
+                <Text style={{ fontSize: F.md, fontWeight: '800', color: T.t2 }}>+998</Text>
+                <TextInput
+                  style={{ flex: 1, fontSize: F.md, fontWeight: '700', color: T.t1, padding: 0 }}
+                  value={addPhone}
+                  onChangeText={t => setAddPhone(t.replace(/\D/g, '').slice(0, 9))}
+                  placeholder="90 000 00 00"
+                  placeholderTextColor={T.t4}
+                  keyboardType="phone-pad"
+                  maxLength={9}
+                />
+              </View>
+              <View style={{ flexDirection: 'row', gap: S.sm, marginTop: S.md }}>
+                <TouchableOpacity style={[pr.modalBtn, { backgroundColor: T.bg3, flex: 1 }]} onPress={() => { setShowAddModal(false); setAddPhone(''); }}>
+                  <Text style={{ fontSize: F.md, fontWeight: '800', color: T.t2 }}>Bekor</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[pr.modalBtn, { backgroundColor: addPhone.length === 9 ? C.p : T.bg3, flex: 1 }]} onPress={handleAddCourier} disabled={addPhone.length !== 9 || addingCourier}>
+                  {addingCourier ? <ActivityIndicator size="small" color="#fff" /> : <Text style={{ fontSize: F.md, fontWeight: '800', color: addPhone.length === 9 ? '#fff' : T.t4 }}>Qo'shish</Text>}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        <TouchableOpacity style={[pr.logoutBtn, { backgroundColor: isDark ? C.rddk : C.rdb, borderColor: C.rd, marginTop: S.md }]} onPress={handleLogout}>
           <IcLogout color={C.rd} size={rs(18, 22)} />
           <Text style={[pr.logoutTxt, { color: C.rd }]}>Tizimdan chiqish</Text>
         </TouchableOpacity>
@@ -1010,4 +1122,10 @@ const pr = StyleSheet.create({
   rowVal: { fontSize: F.sm, fontWeight: '600' },
   logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: S.sm, margin: S.lg, borderWidth: 1.5, borderRadius: R.lg, paddingVertical: S.md },
   logoutTxt: { fontSize: F.lg, fontWeight: '900' },
+  emptyBox: { borderWidth: 1, borderRadius: R.md, padding: S.md, alignItems: 'center' },
+  courierRow: { flexDirection: 'row', alignItems: 'center', gap: S.sm, borderWidth: 1, borderRadius: R.md, padding: S.sm, marginBottom: S.xs },
+  courierDot: { width: rs(8, 10), height: rs(8, 10), borderRadius: rs(4, 5) },
+  modal: { borderTopLeftRadius: R.xl, borderTopRightRadius: R.xl, padding: S.lg, paddingBottom: S.xxl },
+  phoneRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 2, borderRadius: R.md, paddingHorizontal: S.md, height: rs(52, 64), gap: S.sm },
+  modalBtn: { borderRadius: R.md, paddingVertical: rs(13, 16), alignItems: 'center' },
 });
